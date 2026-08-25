@@ -56,23 +56,8 @@ export function ScrollHero() {
   const [isFirstFrameReady, setIsFirstFrameReady] = useState(false);
   const [activeStage, setActiveStage] = useState(0);
   const [isSettled, setIsSettled] = useState(false);
-  const [heroHeight, setHeroHeight] = useState("380vh");
 
-  // Dynamically set container height for mobile (250vh) vs desktop (380vh)
-  useEffect(() => {
-    const updateHeight = () => {
-      if (window.innerWidth < 768) {
-        setHeroHeight("250vh");
-      } else {
-        setHeroHeight("380vh");
-      }
-    };
-    updateHeight();
-    window.addEventListener("resize", updateHeight);
-    return () => window.removeEventListener("resize", updateHeight);
-  }, []);
-
-  // Scroll tracking across container
+  // Scroll tracking across 380vh container
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
@@ -83,7 +68,7 @@ export function ScrollHero() {
   const lastDrawnFrameRef = useRef(-1);
   const rafIdRef = useRef<number | null>(null);
 
-  // Draw frame to canvas with adaptive mobile contain & desktop cover scaling
+  // Draw frame to canvas with full viewport aspect-ratio cover (no empty backgrounds)
   const drawFrame = useCallback((frameIndex: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -127,28 +112,16 @@ export function ScrollHero() {
     let offsetX = 0;
     let offsetY = 0;
 
-    const isMobile = window.innerWidth < 768;
-
-    if (isMobile) {
-      // Mobile adaptive scaling: fit 3D logo proportionally so it is NOT cut off or huge
-      const scale = Math.min(w / imgW, h / imgH) * 0.72;
-      drawW = imgW * scale;
-      drawH = imgH * scale;
-      offsetX = (w - drawW) / 2;
+    // Aspect ratio cover fill for desktop & mobile — no empty gaps or background spaces
+    if (canvasAspect > imgAspect) {
+      drawW = w;
+      drawH = w / imgAspect;
       offsetY = (h - drawH) / 2;
     } else {
-      // Desktop cover scaling with slight upward shift for text clearance
-      const verticalShift = h * 0.04;
-      if (canvasAspect > imgAspect) {
-        drawW = w;
-        drawH = w / imgAspect;
-        offsetY = (h - drawH) / 2 - verticalShift;
-      } else {
-        drawH = h;
-        drawW = h * imgAspect;
-        offsetX = (w - drawW) / 2;
-        offsetY = -verticalShift;
-      }
+      drawH = h;
+      drawW = h * imgAspect;
+      offsetX = (w - drawW) / 2;
+      offsetY = (h - drawH) / 2;
     }
 
     ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
@@ -212,7 +185,7 @@ export function ScrollHero() {
     };
   }, [drawFrame, handleResize]);
 
-  // LERP Smoothing Animation Loop
+  // Smooth LERP animation loop (same desktop & mobile responsiveness)
   useEffect(() => {
     const updateTarget = (progress: number) => {
       targetProgressRef.current = progress;
@@ -225,12 +198,8 @@ export function ScrollHero() {
       const current = currentProgressRef.current;
       const diff = target - current;
 
-      // Faster response rate on mobile touch scroll (0.28 vs 0.09)
-      const isMobile = window.innerWidth < 768;
-      const lerpRate = isMobile ? 0.28 : 0.09;
-
       if (Math.abs(diff) > 0.0001) {
-        currentProgressRef.current += diff * lerpRate;
+        currentProgressRef.current += diff * 0.12;
       } else {
         currentProgressRef.current = target;
       }
@@ -279,7 +248,7 @@ export function ScrollHero() {
     <div
       ref={containerRef}
       className="relative w-full bg-[#030712]"
-      style={{ height: heroHeight }}
+      style={{ height: "380vh" }}
       aria-label="Interactive scroll animation experience"
     >
       {/* Sticky Viewport */}
@@ -297,7 +266,7 @@ export function ScrollHero() {
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse at center, transparent 40%, rgba(3,7,18,0.65) 75%, #030712 100%)",
+              "radial-gradient(ellipse at center, transparent 35%, rgba(3,7,18,0.65) 75%, #030712 100%)",
           }}
         />
 
@@ -312,7 +281,7 @@ export function ScrollHero() {
         />
 
         {/* ─── LEFT FLANK: Pure Floating Typography ──────────────── */}
-        <div className="absolute left-4 sm:left-12 lg:left-16 top-[13%] sm:top-1/2 sm:-translate-y-1/2 z-20 w-full max-w-[260px] sm:max-w-sm pointer-events-none">
+        <div className="absolute left-4 sm:left-12 lg:left-16 top-[12%] sm:top-1/2 sm:-translate-y-1/2 z-20 w-full max-w-[240px] sm:max-w-sm pointer-events-none">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeStage}
@@ -340,7 +309,7 @@ export function ScrollHero() {
         </div>
 
         {/* ─── RIGHT FLANK: Pure Floating Typography ─────────────── */}
-        <div className="absolute right-4 sm:right-12 lg:right-16 bottom-[16%] top-auto sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2 z-20 w-full max-w-[260px] sm:max-w-sm text-right pointer-events-none">
+        <div className="absolute right-4 sm:right-12 lg:right-16 bottom-[16%] top-auto sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2 z-20 w-full max-w-[240px] sm:max-w-sm text-right pointer-events-none">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeStage}
