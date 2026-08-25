@@ -1,6 +1,8 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 const JWT_SECRET_STRING = process.env.ADMIN_JWT_SECRET || "";
 const JWT_SECRET = new TextEncoder().encode(JWT_SECRET_STRING);
@@ -16,6 +18,25 @@ export interface AdminSession {
   email: string;
   name: string;
   role: string;
+}
+
+export async function verifyPassword(password: string, hashOrPlain: string): Promise<boolean> {
+  if (!password || !hashOrPlain) return false;
+
+  // Check if hashOrPlain is a bcrypt hash
+  if (hashOrPlain.startsWith("$2a$") || hashOrPlain.startsWith("$2b$")) {
+    return await bcrypt.compare(password, hashOrPlain);
+  }
+
+  // Fallback constant-time string comparison for env password
+  const a = Buffer.from(password);
+  const b = Buffer.from(hashOrPlain);
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
+export async function hashPassword(password: string): Promise<string> {
+  return await bcrypt.hash(password, 10);
 }
 
 export async function createAdminToken(payload: AdminSession): Promise<string> {

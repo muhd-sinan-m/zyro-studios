@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminToken, DEFAULT_ADMIN } from "@/lib/auth/admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminToken, DEFAULT_ADMIN, verifyPassword } from "@/lib/auth/admin";
 
 const loginRateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const LOGIN_RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
@@ -50,7 +49,7 @@ export async function POST(req: NextRequest) {
       envAdminEmail &&
       envAdminPassword &&
       email.trim().toLowerCase() === envAdminEmail &&
-      password === envAdminPassword
+      (await verifyPassword(password, envAdminPassword))
     ) {
       isValid = true;
       userPayload.email = envAdminEmail;
@@ -62,7 +61,7 @@ export async function POST(req: NextRequest) {
           `SELECT * FROM public.admin_users WHERE email = $1 LIMIT 1`,
           [email.trim().toLowerCase()]
         );
-        if (rows.length > 0 && rows[0].password_hash === password) {
+        if (rows.length > 0 && (await verifyPassword(password, rows[0].password_hash))) {
           isValid = true;
           userPayload = {
             email: rows[0].email,

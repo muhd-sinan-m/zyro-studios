@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAdminRequest } from "@/lib/auth/admin";
+import { verifyAdminRequest, verifyPassword, hashPassword } from "@/lib/auth/admin";
 import { query } from "@/lib/db";
-import fs from "fs";
-import path from "path";
 
 export async function POST(req: NextRequest) {
   const session = await verifyAdminRequest(req);
@@ -30,8 +28,8 @@ export async function POST(req: NextRequest) {
     const envAdminPassword = process.env.ADMIN_PASSWORD || "";
     let isCurrentValid = false;
 
-    // Check env password
-    if (envAdminPassword && currentPassword === envAdminPassword) {
+    // Check env password using constant-time comparison
+    if (envAdminPassword && (await verifyPassword(currentPassword, envAdminPassword))) {
       isCurrentValid = true;
     } else {
       // Check admin_users DB table
@@ -40,7 +38,7 @@ export async function POST(req: NextRequest) {
           `SELECT * FROM public.admin_users WHERE email = $1 LIMIT 1`,
           [session.email]
         );
-        if (rows.length > 0 && rows[0].password_hash === currentPassword) {
+        if (rows.length > 0 && (await verifyPassword(currentPassword, rows[0].password_hash))) {
           isCurrentValid = true;
         }
       } catch (err) {
@@ -55,35 +53,40 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Update database table
+    // Hash the new password using bcrypt
+    const hashedPassword = await hashPassword(newPassword);
+
+    // Update database admin_users table (or insert if env admin)
     try {
-      await query(
-        `
-        UPDATE public.admin_users 
-        SET password_hash = $1, updated_at = NOW()
-        WHERE email = $2
-        `,
-        [newPassword, session.email]
+      const existing = await query(
+        `SELECT id FROM public.admin_users WHERE email = $1 LIMIT 1`,
+        [session.email]
       );
+
+      if (existing.length > 0) {
+        await query(
+          `
+          UPDATE public.admin_users 
+          SET password_hash = $1, updated_at = NOW()
+          WHERE email = $2
+          `,
+          [hashedPassword, session.email]
+        );
+      } else {
+        await query(
+          `
+          INSERT INTO public.admin_users (email, name, role, password_hash)
+          VALUES ($1, $2, 'superadmin', $3)
+          `,
+          [session.email, session.name || "Zyro Admin", hashedPassword]
+        );
+      }
     } catch (dbErr) {
       console.error("Failed to update password in DB:", dbErr);
-    }
-
-    // 2. Update .env.local file if present
-    try {
-      const envPath = path.join(process.cwd(), ".env.local");
-      if (fs.existsSync(envPath)) {
-        let envContent = fs.readFileSync(envPath, "utf8");
-        if (envContent.includes("ADMIN_PASSWORD=")) {
-          envContent = envContent.replace(
-            /ADMIN_PASSWORD=.*/g,
-            `ADMIN_PASSWORD="${newPassword}"`
-          );
-          fs.writeFileSync(envPath, envContent, "utf8");
-        }
-      }
-    } catch (fsErr) {
-      console.error("Failed to update .env.local password:", fsErr);
+      return NextResponse.json(
+        { error: "Failed to persist password update." },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({

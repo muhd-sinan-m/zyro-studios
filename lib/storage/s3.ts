@@ -40,8 +40,10 @@ export async function uploadProjectAsset(
   );
 
   // Return clean permanent public URL
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ldmsnfqntpznvpjnisse.supabase.co";
-  const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${key}`;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const publicUrl = supabaseUrl
+    ? `${supabaseUrl}/storage/v1/object/public/${bucket}/${key}`
+    : `/storage/v1/object/public/${bucket}/${key}`;
   return publicUrl;
 }
 
