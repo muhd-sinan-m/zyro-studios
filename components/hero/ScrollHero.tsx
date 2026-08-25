@@ -68,7 +68,7 @@ export function ScrollHero() {
   const lastDrawnFrameRef = useRef(-1);
   const rafIdRef = useRef<number | null>(null);
 
-  // Draw frame to canvas with full viewport aspect-ratio cover (no empty backgrounds)
+  // Draw frame to canvas with full viewport cover scaling
   const drawFrame = useCallback((frameIndex: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -112,7 +112,7 @@ export function ScrollHero() {
     let offsetX = 0;
     let offsetY = 0;
 
-    // Aspect ratio cover fill for desktop & mobile — no empty gaps or background spaces
+    // Cover fill for both desktop & mobile viewport
     if (canvasAspect > imgAspect) {
       drawW = w;
       drawH = w / imgAspect;
@@ -128,17 +128,27 @@ export function ScrollHero() {
     lastDrawnFrameRef.current = frameIndex;
   }, []);
 
-  // Resize handler
+  // Resize handler with mobile address-bar collapse protection
   const handleResize = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    if (lastDrawnFrameRef.current >= 0) {
-      drawFrame(lastDrawnFrameRef.current);
+    const newW = Math.round(rect.width * dpr);
+    const newH = Math.round(rect.height * dpr);
+
+    // Don't re-allocate canvas size if height change is just mobile browser address bar collapse
+    if (canvas.width !== newW || Math.abs(canvas.height - newH) > 80) {
+      canvas.width = newW;
+      canvas.height = newH;
     }
+
+    lastDrawnFrameRef.current = -1;
+    const currentFrame = Math.min(
+      TOTAL_FRAMES - 1,
+      Math.max(0, Math.floor(currentProgressRef.current * (TOTAL_FRAMES - 1)))
+    );
+    drawFrame(currentFrame);
   }, [drawFrame]);
 
   // Preload and GPU-decode all 240 frames
@@ -185,7 +195,26 @@ export function ScrollHero() {
     };
   }, [drawFrame, handleResize]);
 
-  // Smooth LERP animation loop (same desktop & mobile responsiveness)
+  // Direct passive window scroll tracking (guarantees continuous mobile scroll updates)
+  useEffect(() => {
+    const handleNativeScroll = () => {
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const totalScrollable = rect.height - window.innerHeight;
+      if (totalScrollable > 0) {
+        const currentScroll = -rect.top;
+        const progress = Math.min(1, Math.max(0, currentScroll / totalScrollable));
+        targetProgressRef.current = progress;
+      }
+    };
+
+    window.addEventListener("scroll", handleNativeScroll, { passive: true });
+    handleNativeScroll();
+    return () => window.removeEventListener("scroll", handleNativeScroll);
+  }, []);
+
+  // Smooth LERP animation loop
   useEffect(() => {
     const updateTarget = (progress: number) => {
       targetProgressRef.current = progress;
@@ -199,7 +228,7 @@ export function ScrollHero() {
       const diff = target - current;
 
       if (Math.abs(diff) > 0.0001) {
-        currentProgressRef.current += diff * 0.12;
+        currentProgressRef.current += diff * 0.15;
       } else {
         currentProgressRef.current = target;
       }
