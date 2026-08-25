@@ -122,10 +122,12 @@ ON CONFLICT (id) DO NOTHING;
 -- Storage Policy: Public Read Access for project assets
 CREATE POLICY "Public Read Project Assets"
   ON storage.objects FOR SELECT
+  TO public, anon, authenticated
   USING (bucket_id = 'project-assets');
 
--- Storage Policy: Service Role / Admin Upload & Management
+-- Storage Policy: Service Role / Admin Upload & Management ONLY (Prevents public uploads)
 CREATE POLICY "Service Role Upload Project Assets"
   ON storage.objects FOR ALL
+  TO service_role, postgres
   USING (bucket_id = 'project-assets')
   WITH CHECK (bucket_id = 'project-assets');

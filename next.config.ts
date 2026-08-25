@@ -15,8 +15,10 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   images: {
     formats: ["image/avif", "image/webp"],
-    dangerouslyAllowSVG: true,
+    dangerouslyAllowSVG: false,
     dangerouslyAllowLocalIP: true,
+    contentDispositionType: "inline",
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
       {
         protocol: "https",
