@@ -47,8 +47,8 @@ export function ProcessTimeline() {
           </motion.p>
         </div>
 
-        {/* ─── Balanced 8-Card Grid (4 per row on desktop, 2 per row on tablet) ─── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* ─── Balanced 8-Card Grid (2 per row on mobile, 4 per row on desktop) ─── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
           {/* Steps 01 through 07 */}
           {processSteps.map((step, i) => (
             <motion.div
@@ -56,29 +56,29 @@ export function ProcessTimeline() {
               initial={{ opacity: 0, y: 25 }}
               animate={headInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: i * 0.07 }}
-              className="premium-card p-7 group relative overflow-hidden flex flex-col justify-between"
+              className="premium-card p-4 sm:p-7 group relative overflow-hidden flex flex-col justify-between"
             >
               {/* Subtle Step Number Watermark */}
-              <div className="absolute top-4 right-5 font-mono font-bold text-4xl text-white/[0.03] select-none group-hover:text-[#38bdf8]/10 transition-colors">
+              <div className="absolute top-2 sm:top-4 right-3 sm:right-5 font-mono font-bold text-2xl sm:text-4xl text-white/[0.03] select-none group-hover:text-[#38bdf8]/10 transition-colors">
                 {step.number}
               </div>
 
               <div>
-                <span className="text-xs font-mono font-bold text-[#38bdf8] mb-3 block">
+                <span className="text-[10px] sm:text-xs font-mono font-bold text-[#38bdf8] mb-2 sm:mb-3 block">
                   {step.number} // STEP
                 </span>
 
-                <h3 className="font-display font-bold text-lg sm:text-xl text-white mb-3 group-hover:text-[#38bdf8] transition-colors">
+                <h3 className="font-display font-bold text-xs sm:text-xl text-white mb-2 sm:mb-3 group-hover:text-[#38bdf8] transition-colors leading-snug">
                   {step.title}
                 </h3>
 
-                <p className="text-slate-400 text-xs sm:text-sm leading-[1.6]">
+                <p className="text-slate-400 text-[11px] sm:text-sm leading-normal sm:leading-[1.6]">
                   {step.description}
                 </p>
               </div>
 
-              <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between">
-                <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-semibold">
+              <div className="mt-4 sm:mt-8 pt-3 sm:pt-4 border-t border-white/5 flex items-center justify-between">
+                <span className="text-[9px] sm:text-[10px] font-mono text-slate-500 uppercase tracking-widest font-semibold">
                   Phase {step.number}
                 </span>
               </div>

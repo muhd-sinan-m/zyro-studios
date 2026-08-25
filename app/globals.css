@@ -50,7 +50,7 @@ body {
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.65;
-  overflow-x: hidden;
+  overflow-x: clip;
   min-height: 100vh;
 }
 
@@ -325,9 +325,9 @@ a {
 
 /* ─── Mobile Performance & Smooth Animation Enhancements ───────────────────── */
 @media (max-width: 767px) {
-  /* Prevent horizontal scroll overflow on mobile devices */
+  /* Prevent horizontal scroll overflow on mobile devices without breaking CSS position: sticky */
   html, body {
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
     touch-action: manipulation;
   }
 

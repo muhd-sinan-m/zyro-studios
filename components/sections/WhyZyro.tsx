@@ -80,8 +80,8 @@ export function WhyZyro() {
           </motion.p>
         </div>
 
-        {/* 6-Card Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* 6-Card Bento Grid (2 per row on mobile) */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
           {pillars.map((item, i) => {
             const Icon = item.icon;
             return (
@@ -91,16 +91,17 @@ export function WhyZyro() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.1 }}
                 transition={{ duration: 0.5, delay: i * 0.05 }}
-                className="premium-card p-8 group flex flex-col justify-between"
+                className="premium-card p-4 sm:p-8 group flex flex-col justify-between"
               >
                 <div>
-                  <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#38bdf8] mb-5 group-hover:bg-[#0084ff]/20 group-hover:border-[#0084ff]/40 transition-all">
-                    <Icon size={20} />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#38bdf8] mb-3 sm:mb-5 group-hover:bg-[#0084ff]/20 group-hover:border-[#0084ff]/40 transition-all">
+                    <Icon size={17} className="sm:hidden" />
+                    <Icon size={20} className="hidden sm:block" />
                   </div>
-                  <h3 className="font-display font-bold text-lg text-white mb-2.5 group-hover:text-[#38bdf8] transition-colors">
+                  <h3 className="font-display font-bold text-xs sm:text-lg text-white mb-1.5 sm:mb-2.5 group-hover:text-[#38bdf8] transition-colors leading-snug">
                     {item.title}
                   </h3>
-                  <p className="text-slate-400 text-sm leading-relaxed">
+                  <p className="text-slate-400 text-[11px] sm:text-sm leading-normal sm:leading-relaxed">
                     {item.description}
                   </p>
                 </div>

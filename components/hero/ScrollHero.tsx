@@ -281,7 +281,7 @@ export function ScrollHero() {
       aria-label="Interactive scroll animation experience"
     >
       {/* Sticky Viewport */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
+      <div className="sticky top-0 h-screen h-[100dvh] w-full overflow-hidden flex items-center justify-center">
         {/* Fullscreen Canvas with 3D logo */}
         <canvas
           ref={canvasRef}

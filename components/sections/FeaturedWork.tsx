@@ -82,21 +82,15 @@ export function FeaturedWork() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
                   
                   {/* Visual Showcase / Live Site Frame (7 cols) */}
-                  <div
-                    className="lg:col-span-7 relative rounded-[12px] bg-[#060b18] border border-white/10 flex flex-col justify-between shadow-2xl overflow-hidden min-h-[360px]"
-                    style={{ padding: "24px" }}
-                  >
+                  <div className="lg:col-span-7 relative rounded-[12px] bg-[#060b18] border border-white/10 flex flex-col justify-between shadow-2xl overflow-hidden min-h-0 sm:min-h-[360px] p-3.5 sm:p-6">
                     {/* Browser top-bar mockup */}
-                    <div
-                      className="flex items-center justify-between border-b border-white/10 relative z-10"
-                      style={{ paddingBottom: "14px" }}
-                    >
+                    <div className="flex items-center justify-between border-b border-white/10 relative z-10 pb-3 mb-2">
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
                         <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
                         <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
                       </div>
-                      <span className="text-[11px] font-mono text-slate-400">
+                      <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate max-w-[160px] sm:max-w-none">
                         {project.liveUrl ? project.liveUrl.replace(/^https?:\/\//, "") : `${project.slug}.zyrostudios.com`}
                       </span>
                       <span className="text-[10px] font-mono font-bold text-[#38bdf8] bg-[#0084ff]/10 px-2 py-0.5 rounded border border-[#0084ff]/20">
@@ -106,7 +100,7 @@ export function FeaturedWork() {
 
                     {/* Visual Centerpiece or Image Screenshot */}
                     {hasScreenshot && isLocalOrData ? (
-                      <div className="relative my-3 w-full rounded-lg overflow-hidden border border-white/10 aspect-[16/9] shadow-lg bg-[#02050e]">
+                      <div className="relative my-2 w-full rounded-lg overflow-hidden border border-white/10 aspect-[16/9] shadow-lg bg-[#02050e]">
                         <img
                           src={screenshotUrl}
                           alt={project.title}
@@ -114,8 +108,8 @@ export function FeaturedWork() {
                         />
                       </div>
                     ) : (
-                      <div className="my-auto text-center py-8">
-                        <span className="text-4xl sm:text-5xl font-display font-extrabold text-gradient tracking-tight block mb-2">
+                      <div className="my-auto text-center py-6">
+                        <span className="text-3xl sm:text-5xl font-display font-extrabold text-gradient tracking-tight block mb-2">
                           {project.title}
                         </span>
                         <p className="text-xs sm:text-sm font-mono text-slate-300">
@@ -128,7 +122,7 @@ export function FeaturedWork() {
                   {/* Information / Description Box (5 cols) */}
                   <div
                     className="lg:col-span-5 flex flex-col justify-between h-full"
-                    style={{ padding: "12px 8px" }}
+                    style={{ padding: "8px 4px" }}
                   >
                     <div>
                       <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#38bdf8] mb-2 block">
@@ -153,14 +147,11 @@ export function FeaturedWork() {
                       </div>
                     </div>
 
-                    {/* Action Buttons: View Details (Modal) & Live Site */}
-                    <div
-                      className="flex flex-wrap items-center gap-3 pt-5 border-t border-white/10"
-                      style={{ marginTop: "12px" }}
-                    >
+                    {/* Action Buttons: View Details (Modal) & Live Site — Side by Side Center Aligned on Mobile */}
+                    <div className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center pt-4 border-t border-white/10 w-full text-center items-center justify-center mt-3">
                       <button
                         onClick={() => setSelectedProject(project)}
-                        className="btn-secondary text-xs py-3 px-5 rounded-[10px] font-semibold inline-flex items-center gap-2 cursor-pointer"
+                        className="btn-secondary text-xs py-3 px-2 sm:px-5 rounded-[10px] font-semibold flex items-center justify-center gap-1.5 w-full text-center cursor-pointer"
                       >
                         <Sparkles size={14} className="text-[#38bdf8]" />
                         <span>View Details</span>
@@ -171,7 +162,7 @@ export function FeaturedWork() {
                           href={project.liveUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="btn-primary text-xs py-3 px-6 rounded-[10px] font-bold inline-flex items-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(0,132,255,0.4)]"
+                          className="btn-primary text-xs py-3 px-2 sm:px-6 rounded-[10px] font-bold flex items-center justify-center gap-1.5 w-full text-center cursor-pointer shadow-[0_0_20px_rgba(0,132,255,0.4)]"
                         >
                           <span>Visit Live Site</span>
                           <ExternalLink size={14} />

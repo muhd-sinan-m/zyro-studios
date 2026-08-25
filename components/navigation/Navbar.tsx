@@ -75,48 +75,50 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Navigation Dropdown (Compact Floating Pill Card - Center Aligned & Fits Content) */}
+      {/* Mobile Navigation Dropdown (Full Width, Center Aligned, Fits Content) */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -12, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -12, scale: 0.95 }}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="fixed top-[84px] left-4 right-4 max-w-xs mx-auto z-40 md:hidden bg-[#071022]/95 border border-white/15 backdrop-blur-2xl rounded-2xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.85)] flex flex-col items-center text-center gap-3.5"
+            className="fixed top-[76px] left-0 right-0 w-full z-40 md:hidden px-4 pointer-events-auto"
           >
-            <nav className="w-full flex flex-col items-center gap-1.5">
-              {navLinks.map((link) => {
-                const isActive = pathname === link.href;
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setIsOpen(false)}
-                    className={`w-full py-2.5 px-4 rounded-xl text-sm font-display font-bold text-center transition-all ${
-                      isActive
-                        ? "text-[#38bdf8] bg-[#0084ff]/15 border border-[#0084ff]/30 shadow-[0_0_15px_rgba(0,132,255,0.2)]"
-                        : "text-slate-200 hover:text-white hover:bg-white/5"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </nav>
+            <div className="w-full bg-[#071022]/95 border border-white/15 backdrop-blur-2xl rounded-2xl py-6 px-6 shadow-[0_20px_50px_rgba(0,0,0,0.9)] flex flex-col items-center justify-center text-center gap-4">
+              <nav className="w-full max-w-sm flex flex-col items-center justify-center gap-2">
+                {navLinks.map((link) => {
+                  const isActive = pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setIsOpen(false)}
+                      className={`w-full py-2.5 px-4 rounded-xl text-sm font-display font-bold text-center transition-all ${
+                        isActive
+                          ? "text-[#38bdf8] bg-[#0084ff]/15 border border-[#0084ff]/30 shadow-[0_0_15px_rgba(0,132,255,0.2)]"
+                          : "text-slate-200 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </nav>
 
-            <div className="w-full pt-3 border-t border-white/10 flex flex-col items-center gap-2">
-              <Link
-                href="/contact"
-                onClick={() => setIsOpen(false)}
-                className="btn-primary w-full py-3 text-center justify-center text-xs font-bold rounded-xl shadow-[0_0_20px_rgba(0,132,255,0.4)]"
-              >
-                <span>Start a Project</span>
-                <ArrowUpRight size={15} />
-              </Link>
-              <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest text-center mt-1">
-                WE BUILD. YOU GROW.
-              </p>
+              <div className="w-full max-w-sm pt-3 border-t border-white/10 flex flex-col items-center justify-center gap-2.5">
+                <Link
+                  href="/contact"
+                  onClick={() => setIsOpen(false)}
+                  className="btn-primary w-full py-3 text-center justify-center text-xs font-bold rounded-xl shadow-[0_0_20px_rgba(0,132,255,0.4)]"
+                >
+                  <span>Start a Project</span>
+                  <ArrowUpRight size={15} />
+                </Link>
+                <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest text-center mt-1">
+                  WE BUILD. YOU GROW.
+                </p>
+              </div>
             </div>
           </motion.div>
         )}
