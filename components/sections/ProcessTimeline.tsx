@@ -1,0 +1,143 @@
+"use client";
+
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { processSteps } from "@/data/navigation";
+
+export function ProcessTimeline() {
+  const headRef = useRef<HTMLDivElement>(null);
+  const headInView = useInView(headRef, { once: true, margin: "-60px" });
+
+  return (
+    <section
+      className="relative overflow-hidden bg-[#030712]"
+      id="process"
+      style={{ paddingTop: "140px", paddingBottom: "100px" }}
+    >
+      <div className="section-container relative z-10">
+        
+        {/* ─── Centered Section Header ──────────────────────────────────────── */}
+        <div ref={headRef} className="section-header-block" data-section-header="true">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={headInView ? { opacity: 1, y: 0 } : {}}
+            className="flex justify-center mb-4"
+          >
+            <span className="section-label">06 / ENGINEERING LIFECYCLE</span>
+          </motion.div>
+
+          <motion.h2
+            initial={{ opacity: 0, y: 15 }}
+            animate={headInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.1 }}
+            className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-white mb-4 tracking-tight text-center"
+          >
+            From concept to <span className="text-gradient-blue">launch &amp; scale.</span>
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            animate={headInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.2 }}
+            className="text-slate-400 text-sm sm:text-base md:text-lg leading-relaxed text-center max-w-[600px] mx-auto"
+          >
+            A clear, predictable roadmap where precision engineering meets continuous feedback.
+          </motion.p>
+        </div>
+
+        {/* ─── Balanced 8-Card Grid (4 per row on desktop, 2 per row on tablet) ─── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Steps 01 through 07 */}
+          {processSteps.map((step, i) => (
+            <motion.div
+              key={step.number}
+              initial={{ opacity: 0, y: 25 }}
+              animate={headInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: i * 0.07 }}
+              className="premium-card p-7 group relative overflow-hidden flex flex-col justify-between"
+            >
+              {/* Subtle Step Number Watermark */}
+              <div className="absolute top-4 right-5 font-mono font-bold text-4xl text-white/[0.03] select-none group-hover:text-[#38bdf8]/10 transition-colors">
+                {step.number}
+              </div>
+
+              <div>
+                <span className="text-xs font-mono font-bold text-[#38bdf8] mb-3 block">
+                  {step.number} // STEP
+                </span>
+
+                <h3 className="font-display font-bold text-lg sm:text-xl text-white mb-3 group-hover:text-[#38bdf8] transition-colors">
+                  {step.title}
+                </h3>
+
+                <p className="text-slate-400 text-xs sm:text-sm leading-[1.6]">
+                  {step.description}
+                </p>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between">
+                <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-semibold">
+                  Phase {step.number}
+                </span>
+              </div>
+            </motion.div>
+          ))}
+
+          {/* ─── 8th Card: Closing CTA Beside "Grow" ──────────────────────── */}
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            animate={headInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 7 * 0.07 }}
+            className="premium-card p-7 group relative overflow-hidden flex flex-col justify-between border-[#0084ff]/30 bg-gradient-to-b from-[#0084ff]/10 via-[#07112b] to-[#040816]/95 hover:border-[#38bdf8]/60 shadow-[0_0_30px_rgba(0,132,255,0.15)]"
+          >
+            {/* Subtle Watermark */}
+            <div className="absolute top-4 right-5 font-mono font-bold text-4xl text-[#38bdf8]/10 select-none group-hover:text-[#38bdf8]/20 transition-colors">
+              08
+            </div>
+
+            <div>
+              <span className="text-xs font-mono font-bold text-[#38bdf8] mb-3 block">
+                NEXT // GET STARTED
+              </span>
+
+              <h3 className="font-display font-bold text-lg sm:text-xl text-white mb-3 group-hover:text-[#38bdf8] transition-colors">
+                Ready to start your project?
+              </h3>
+
+              <p className="text-slate-300 text-xs sm:text-sm leading-[1.6]">
+                Let&apos;s turn your roadmap into production code with dedicated senior engineer execution.
+              </p>
+            </div>
+
+            <div className="mt-8 pt-5 border-t border-white/10 flex items-center">
+              <Link
+                href="/contact"
+                className="text-white font-bold text-sm tracking-wide transition-colors duration-150 cursor-pointer hover:bg-[#0070db]"
+                style={{
+                  padding: "14px 28px",
+                  minHeight: "48px",
+                  gap: "8px",
+                  borderRadius: "8px",
+                  background: "#0084ff",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "fit-content",
+                  boxShadow: "none",
+                  outline: "none",
+                  border: "none",
+                }}
+              >
+                <span>Start a Project</span>
+                <ArrowRight size={16} />
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+
+      </div>
+    </section>
+  );
+}
