@@ -60,7 +60,7 @@ export default function WorkPage() {
   const closeProjectModal = () => {
     setSelectedProject(null);
     if (window.location.hash) {
-      window.history.pushState("", document.title, window.location.pathname + window.location.search);
+      window.history.replaceState({}, "", window.location.pathname + window.location.search);
     }
   };
 
