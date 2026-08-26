@@ -117,6 +117,7 @@ export function ProcessTimeline() {
                 label="Start Project"
                 link="/contact"
                 colors={{ fill: "#0084ff", textColor: "#FFFFFF" }}
+                hideIconOnMobile={true}
                 icon={{
                   side: "right",
                   type: "icon",

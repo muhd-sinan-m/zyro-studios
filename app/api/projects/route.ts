@@ -10,8 +10,8 @@ export async function GET(req: NextRequest) {
   let dbProjects: any[] = [];
   try {
     const sql = includeAll
-      ? `SELECT * FROM public.projects ORDER BY created_at DESC`
-      : `SELECT * FROM public.projects WHERE status != 'archived' ORDER BY created_at DESC`;
+      ? `SELECT * FROM public.projects ORDER BY created_at ASC, id ASC`
+      : `SELECT * FROM public.projects WHERE status != 'archived' ORDER BY created_at ASC, id ASC`;
     dbProjects = await query(sql);
   } catch (err) {
     console.error("Error fetching projects from DB:", err);

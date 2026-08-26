@@ -55,6 +55,7 @@ type Props = {
     link?: string;
     transition?: Transition;
     newTab?: boolean;
+    hideIconOnMobile?: boolean;
     style?: React.CSSProperties;
     className?: string;
 };
@@ -233,6 +234,7 @@ function __OriginkitBase_ArrowRevealButton(props: Props) {
             duration: 0.46,
         } as Transition,
         newTab = false,
+        hideIconOnMobile = false,
         style,
         className,
     } = props;
@@ -530,6 +532,7 @@ function __OriginkitBase_ArrowRevealButton(props: Props) {
                 {/* Layer 1: Text label layer */}
                 <span
                     ref={textRef}
+                    className={hideIconOnMobile ? "w-full text-center sm:w-auto sm:text-left" : ""}
                     style={{
                         position: "relative",
                         zIndex: 1,
@@ -548,6 +551,7 @@ function __OriginkitBase_ArrowRevealButton(props: Props) {
                 <span
                     ref={slotRef}
                     aria-hidden
+                    className={hideIconOnMobile ? "hidden sm:inline-block" : ""}
                     style={{
                         flex: "none",
                         width: badgeSizeProp,
@@ -559,6 +563,7 @@ function __OriginkitBase_ArrowRevealButton(props: Props) {
                 <div
                     ref={badgeRef}
                     aria-hidden
+                    className={hideIconOnMobile ? "hidden sm:block" : ""}
                     style={{
                         position: "absolute",
                         zIndex: 2,
@@ -575,6 +580,7 @@ function __OriginkitBase_ArrowRevealButton(props: Props) {
                 <div
                     ref={arrowRef}
                     aria-hidden
+                    className={hideIconOnMobile ? "hidden sm:flex" : ""}
                     style={{
                         position: "absolute",
                         zIndex: 3,

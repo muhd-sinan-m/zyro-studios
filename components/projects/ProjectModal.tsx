@@ -38,7 +38,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
 
   if (!project) return null;
 
-  const cardImg = project.thumbnail || (project.screenshots && project.screenshots[0]) || "/img/pyqportal.webp";
+  const cardImg = project.thumbnail || (project.screenshots && project.screenshots[0]) || "";
   const modalImg = project.modalImage || (project.screenshots && project.screenshots[1]) || cardImg;
 
   return (
@@ -62,25 +62,28 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                 msOverflowStyle: "none",
               }}
             >
-              {/* Top Header: Metadata Badges & Close Button */}
+              {/* Top Header: Metadata Text & Close Button */}
               <div className="flex items-center justify-between gap-4" style={{ marginBottom: "16px" }}>
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#38bdf8] bg-[#0084ff]/10 border border-[#0084ff]/30 px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(0,132,255,0.15)]">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-mono text-slate-400">
+                  <span className="font-bold uppercase tracking-wider text-[#38bdf8]">
                     {project.category}
                   </span>
 
-                  {/* Year Pill Card */}
-                  <span className="text-xs font-mono text-slate-300 bg-white/[0.04] border border-white/15 px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
+                  <span className="text-slate-600">•</span>
+
+                  <span className="flex items-center gap-1.5 text-slate-300">
                     <Calendar size={13} className="text-[#38bdf8]" />
                     <span>{project.year || 2026}</span>
                   </span>
 
-                  {/* Client Pill Card */}
                   {project.client && (
-                    <span className="text-xs font-mono text-slate-300 bg-white/[0.04] border border-white/15 px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
-                      <User size={13} className="text-[#38bdf8]" />
-                      <span>{project.client}</span>
-                    </span>
+                    <>
+                      <span className="text-slate-600">•</span>
+                      <span className="flex items-center gap-1.5 text-slate-300">
+                        <User size={13} className="text-[#38bdf8]" />
+                        <span>{project.client}</span>
+                      </span>
+                    </>
                   )}
                 </div>
 
@@ -99,9 +102,11 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                 <h2 className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl text-white tracking-tight leading-tight">
                   {project.title}
                 </h2>
-                <p className="text-xs sm:text-sm font-medium text-slate-400 mt-1">
-                  {project.shortDescription || "Access. Practice. Perform."}
-                </p>
+                {project.shortDescription && (
+                  <p className="text-xs sm:text-sm font-medium text-slate-400 mt-1">
+                    {project.shortDescription}
+                  </p>
+                )}
               </div>
 
               {/* Main 2-Column Grid */}
@@ -114,40 +119,56 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                   <div className="grid grid-cols-2 gap-3.5">
                     {/* Image 1 */}
                     <div
-                      onClick={() => setActiveImagePreview(cardImg)}
+                      onClick={() => cardImg && setActiveImagePreview(cardImg)}
                       className="relative rounded-2xl overflow-hidden border border-white/15 bg-[#030712] aspect-[16/11] group shadow-lg cursor-pointer transition-all duration-300 hover:border-[#0084ff]/50"
                     >
-                      <Image
-                        src={cardImg}
-                        alt={`${project.title} Image 1`}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        sizes="(max-width: 768px) 50vw, 25vw"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
-                        <div className="w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity transform scale-75 group-hover:scale-100 duration-200">
-                          <Maximize2 size={14} />
+                      {cardImg ? (
+                        <Image
+                          src={cardImg}
+                          alt={`${project.title} Image 1`}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-500 font-mono text-xs">
+                          {project.title}
                         </div>
-                      </div>
+                      )}
+                      {cardImg && (
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity transform scale-75 group-hover:scale-100 duration-200">
+                            <Maximize2 size={14} />
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Image 2 */}
                     <div
-                      onClick={() => setActiveImagePreview(modalImg)}
+                      onClick={() => modalImg && setActiveImagePreview(modalImg)}
                       className="relative rounded-2xl overflow-hidden border border-white/15 bg-[#030712] aspect-[16/11] group shadow-lg cursor-pointer transition-all duration-300 hover:border-[#0084ff]/50"
                     >
-                      <Image
-                        src={modalImg}
-                        alt={`${project.title} Image 2`}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        sizes="(max-width: 768px) 50vw, 25vw"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
-                        <div className="w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity transform scale-75 group-hover:scale-100 duration-200">
-                          <Maximize2 size={14} />
+                      {modalImg ? (
+                        <Image
+                          src={modalImg}
+                          alt={`${project.title} Image 2`}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-500 font-mono text-xs">
+                          {project.title}
                         </div>
-                      </div>
+                      )}
+                      {modalImg && (
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity transform scale-75 group-hover:scale-100 duration-200">
+                            <Maximize2 size={14} />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -189,7 +210,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                         </h4>
                       </div>
                       <p className="text-xs text-slate-300 leading-relaxed">
-                        {project.problemStatement || "Addressing complex workflows and fragmented study materials with clean architecture."}
+                        {project.problemStatement || "Engineered to overcome domain complexity and user navigation bottlenecks."}
                       </p>
                     </div>
 
@@ -207,7 +228,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                         </h4>
                       </div>
                       <p className="text-xs text-slate-300 leading-relaxed">
-                        {project.solution || "Centralized, well-organized platform offering clean searchable resource navigation."}
+                        {project.solution || "Tailored digital system delivering continuous performance and clear conversion paths."}
                       </p>
                     </div>
                   </div>
@@ -235,24 +256,10 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                           </div>
                         ))
                       ) : (
-                        <>
-                          <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300">
-                            <CheckCircle2 size={16} className="text-[#0084ff] flex-shrink-0 mt-0.5" />
-                            <span className="leading-snug">Previous Year Question (PYQ) repository with subject-wise filtering</span>
-                          </div>
-                          <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300">
-                            <CheckCircle2 size={16} className="text-[#0084ff] flex-shrink-0 mt-0.5" />
-                            <span className="leading-snug">Searchable question bank with tag-based navigation</span>
-                          </div>
-                          <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300">
-                            <CheckCircle2 size={16} className="text-[#0084ff] flex-shrink-0 mt-0.5" />
-                            <span className="leading-snug">Clean, distraction-free reading interface</span>
-                          </div>
-                          <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300">
-                            <CheckCircle2 size={16} className="text-[#0084ff] flex-shrink-0 mt-0.5" />
-                            <span className="leading-snug">Mobile-responsive design for study on any device</span>
-                          </div>
-                        </>
+                        <div className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300">
+                          <CheckCircle2 size={16} className="text-[#0084ff] flex-shrink-0 mt-0.5" />
+                          <span className="leading-snug">{project.shortDescription}</span>
+                        </div>
                       )}
                     </div>
                   </div>

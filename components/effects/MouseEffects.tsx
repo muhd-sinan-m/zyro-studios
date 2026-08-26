@@ -39,12 +39,25 @@ export default function MouseEffects({
   labelFont = { fontFamily: "var(--font-sans, Inter)", fontSize: 40, fontWeight: 600 },
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isTouch, setIsTouch] = useState(false);
   const [rings, setRings] = useState<Effect[]>([]);
   const [bursts, setBursts] = useState<Effect[]>([]);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [crosshairs, setCrosshairs] = useState<Effect[]>([]);
   const [wavies, setWavies] = useState<Effect[]>([]);
   const [snipers, setSnipers] = useState<Effect[]>([]);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const isCoarse = window.matchMedia("(pointer: coarse)").matches;
+      const isSmallScreen = window.innerWidth < 768;
+      setIsTouch(isCoarse || isSmallScreen);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -91,6 +104,8 @@ export default function MouseEffects({
     filter: "drop-shadow(0 0 6px rgba(56, 189, 248, 0.6))",
     zIndex: 9999,
   });
+
+  if (isTouch) return null;
 
   return (
     <div
