@@ -87,10 +87,10 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                   )}
                 </div>
 
-                {/* Top Right Larger Close Button */}
+                {/* Top Right Close Icon */}
                 <button
                   onClick={onClose}
-                  className="p-3.5 sm:p-4 rounded-full bg-white/5 border border-white/20 text-slate-300 hover:text-white hover:bg-white/15 hover:border-white/50 transition-all cursor-pointer flex-shrink-0 shadow-lg"
+                  className="p-2 sm:p-2.5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer flex-shrink-0"
                   aria-label="Close modal"
                 >
                   <X size={24} />
