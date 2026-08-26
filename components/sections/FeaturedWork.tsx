@@ -121,17 +121,17 @@ export function FeaturedWork() {
                   
                   {/* Visual Showcase / Live Site Frame (7 cols) */}
                   <div className="lg:col-span-7 relative rounded-[12px] bg-[#060b18] border border-white/10 flex flex-col justify-between shadow-2xl overflow-hidden min-h-0 sm:min-h-[360px] p-3.5 sm:p-6">
-                    {/* Browser top-bar mockup with generous side padding */}
-                    <div className="flex items-center justify-between border-b border-white/10 relative z-10 pb-3 mb-2 px-3.5 sm:px-5">
-                      <div className="flex items-center gap-2">
+                    {/* Browser top-bar mockup */}
+                    <div className="flex items-center justify-between border-b border-white/10 relative z-10 pb-3 mb-2 px-4 sm:px-7">
+                      <div className="flex items-center gap-2 pl-2 sm:pl-3">
                         <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
                         <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
                         <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
                       </div>
-                      <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate max-w-[150px] sm:max-w-none">
+                      <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate max-w-[140px] sm:max-w-none">
                         {project.liveUrl ? project.liveUrl.replace(/^https?:\/\//, "") : `${project.slug}.zyrostudios.com`}
                       </span>
-                      <span className="text-[10px] font-mono font-bold text-[#38bdf8] uppercase tracking-wider">
+                      <span className="text-[10px] font-mono font-bold text-[#38bdf8] uppercase tracking-wider pr-2 sm:pr-3">
                         {project.status === "live" ? "LIVE" : "DEV"}
                       </span>
                     </div>
