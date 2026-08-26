@@ -5,6 +5,7 @@ import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { processSteps } from "@/data/navigation";
+import ArrowRevealButton from "@/components/ui/ArrowRevealButton";
 
 export function ProcessTimeline() {
   const headRef = useRef<HTMLDivElement>(null);
@@ -90,49 +91,45 @@ export function ProcessTimeline() {
             initial={{ opacity: 0, y: 25 }}
             animate={headInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5, delay: 7 * 0.07 }}
-            className="premium-card p-7 group relative overflow-hidden flex flex-col justify-between border-[#0084ff]/30 bg-gradient-to-b from-[#0084ff]/10 via-[#07112b] to-[#040816]/95 hover:border-[#38bdf8]/60 shadow-[0_0_30px_rgba(0,132,255,0.15)]"
+            className="premium-card p-4 sm:p-7 group relative overflow-hidden flex flex-col justify-between border-[#0084ff]/30 bg-gradient-to-b from-[#0084ff]/10 via-[#07112b] to-[#040816]/95 hover:border-[#38bdf8]/60 shadow-[0_0_30px_rgba(0,132,255,0.15)]"
           >
             {/* Subtle Watermark */}
-            <div className="absolute top-4 right-5 font-mono font-bold text-4xl text-[#38bdf8]/10 select-none group-hover:text-[#38bdf8]/20 transition-colors">
+            <div className="absolute top-2 sm:top-4 right-3 sm:right-5 font-mono font-bold text-2xl sm:text-4xl text-[#38bdf8]/10 select-none group-hover:text-[#38bdf8]/20 transition-colors">
               08
             </div>
 
             <div>
-              <span className="text-xs font-mono font-bold text-[#38bdf8] mb-3 block">
-                NEXT // GET STARTED
+              <span className="text-[10px] sm:text-xs font-mono font-bold text-[#38bdf8] mb-2 sm:mb-3 block">
+                08 // START BUILD
               </span>
 
-              <h3 className="font-display font-bold text-lg sm:text-xl text-white mb-3 group-hover:text-[#38bdf8] transition-colors">
-                Ready to start your project?
+              <h3 className="font-display font-bold text-xs sm:text-xl text-white mb-2 sm:mb-3 group-hover:text-[#38bdf8] transition-colors leading-snug">
+                Ready to launch?
               </h3>
 
-              <p className="text-slate-300 text-xs sm:text-sm leading-[1.6]">
-                Let&apos;s turn your roadmap into production code with dedicated senior engineer execution.
+              <p className="text-slate-400 text-[11px] sm:text-sm leading-normal sm:leading-[1.6]">
+                Turn your roadmap into production code with dedicated senior execution.
               </p>
             </div>
 
-            <div className="mt-8 pt-5 border-t border-white/10 flex items-center">
-              <Link
-                href="/contact"
-                className="text-white font-bold text-sm tracking-wide transition-colors duration-150 cursor-pointer hover:bg-[#0070db]"
-                style={{
-                  padding: "14px 28px",
-                  minHeight: "48px",
-                  gap: "8px",
-                  borderRadius: "8px",
-                  background: "#0084ff",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "fit-content",
-                  boxShadow: "none",
-                  outline: "none",
-                  border: "none",
+            <div className="mt-3 sm:mt-6 pt-3 border-t border-white/10 flex items-center w-full">
+              <ArrowRevealButton
+                label="Start Project"
+                link="/contact"
+                colors={{ fill: "#0084ff", textColor: "#FFFFFF" }}
+                icon={{
+                  side: "right",
+                  type: "icon",
+                  icon: "arrow",
+                  background: "rgba(255, 255, 255, 0.18)",
+                  color: "#FFFFFF",
+                  padding: 8,
+                  size: 14,
                 }}
-              >
-                <span>Start a Project</span>
-                <ArrowRight size={16} />
-              </Link>
+                padding="10px 18px"
+                rounded={100}
+                style={{ width: "100%" }}
+              />
             </div>
           </motion.div>
         </div>

@@ -45,7 +45,7 @@ export function Footer() {
           style={{ maxWidth: "720px", marginLeft: "auto", marginRight: "auto", textAlign: "center", marginBottom: "0" }}
         >
           <div className="flex justify-center mb-5" style={{ marginLeft: "auto", marginRight: "auto" }}>
-            <span className="section-label">10 / READY TO COLLABORATE</span>
+            <span className="section-label">READY TO COLLABORATE</span>
           </div>
 
           <h2

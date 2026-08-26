@@ -270,6 +270,17 @@ export function ScrollHero() {
     };
   }, [scrollYProgress, drawFrame]);
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const leftStage = LEFT_STAGES[activeStage];
   const rightStandard = RIGHT_STANDARDS[activeStage];
 
@@ -277,11 +288,85 @@ export function ScrollHero() {
     <div
       ref={containerRef}
       className="relative w-full bg-[#030712]"
-      style={{ height: "380vh" }}
+      style={{ height: isMobile ? "auto" : "380vh" }}
       aria-label="Interactive scroll animation experience"
     >
-      {/* Sticky Viewport */}
-      <div className="sticky top-0 h-screen h-[100dvh] w-full overflow-hidden flex items-center justify-center">
+      {/* ─── MOBILE-ONLY HERO LAYOUT (Full-Screen Background Image, Stage 01 Flanking Alignment) ─── */}
+      <div className="md:hidden relative min-h-[100dvh] w-full flex flex-col justify-between items-center bg-[#030712] overflow-hidden">
+        {/* Full-Screen Background Image */}
+        <img
+          src="/logo/zyro-logo.jpg"
+          alt="Zyro Studios Background"
+          className="absolute inset-0 w-full h-full object-cover object-center z-0 opacity-95"
+        />
+
+        {/* Subtle Vignette Overlay for Image Clarity */}
+        <div
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, rgba(3,7,18,0.15) 0%, rgba(3,7,18,0.45) 60%, rgba(3,7,18,0.8) 100%)",
+          }}
+        />
+
+        {/* Ambient Glow */}
+        <div
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] pointer-events-none opacity-30 rounded-full z-0"
+          style={{ background: "radial-gradient(circle, #0084ff 0%, transparent 70%)" }}
+        />
+
+        {/* ─── LEFT FLANK: Stage 01 Message (Aligned with 28px+ Screen Border Clearance) ─── */}
+        <div className="absolute left-7 sm:left-12 top-[16%] sm:top-[18%] z-10 max-w-[280px] text-left pointer-events-none">
+          <div className="flex flex-col items-start gap-1.5 sm:gap-2">
+            <span className="text-xs font-mono font-bold tracking-widest text-[#38bdf8] uppercase">
+              01 // CUSTOM WEB APPS
+            </span>
+            <h1 className="font-display font-extrabold text-xl sm:text-2xl text-white tracking-tight leading-snug">
+              Full-Stack Web Applications.
+            </h1>
+            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-xs">
+              Custom SaaS platforms, client portals, and internal business workflow systems built to scale.
+            </p>
+          </div>
+        </div>
+
+        {/* ─── RIGHT FLANK: Stage 01 Message (Aligned with 28px+ Screen Border Clearance) ─── */}
+        <div className="absolute right-7 sm:right-12 bottom-[22%] sm:bottom-[24%] z-10 max-w-[280px] text-right pointer-events-none">
+          <div className="flex flex-col items-end gap-1 sm:gap-1.5">
+            <span className="font-display font-extrabold text-3xl sm:text-4xl text-gradient-blue tracking-tight">
+              Turnkey
+            </span>
+            <h3 className="font-display font-bold text-base sm:text-lg text-white">
+              End-to-End Delivery
+            </h3>
+            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-xs">
+              System architecture, UI design, deployment, and maintenance — fully owned, start to finish.
+            </p>
+          </div>
+        </div>
+
+        {/* ─── BOTTOM ACTION BUTTONS: Generous 24px Bottom Clearance ─── */}
+        <div className="absolute bottom-6 inset-x-0 z-20 flex justify-center px-6">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/contact"
+              className="btn-primary text-xs py-2.5 px-6 rounded-full font-semibold shadow-[0_0_24px_rgba(0,132,255,0.4)]"
+            >
+              <span>Start a Project</span>
+              <ArrowRight size={13} />
+            </Link>
+            <Link
+              href="/work"
+              className="btn-secondary text-xs py-2.5 px-6 rounded-full font-medium"
+            >
+              View Our Work
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── DESKTOP VIEWPORT WITH SCROLL CANVAS ANIMATION (Unchanged for Desktop) ─── */}
+      <div className="hidden md:flex sticky top-0 h-screen h-[100dvh] w-full overflow-hidden items-center justify-center">
         {/* Fullscreen Canvas with 3D logo */}
         <canvas
           ref={canvasRef}
@@ -310,7 +395,7 @@ export function ScrollHero() {
         />
 
         {/* ─── LEFT FLANK: Pure Floating Typography ──────────────── */}
-        <div className="absolute left-4 sm:left-12 lg:left-16 top-[12%] sm:top-1/2 sm:-translate-y-1/2 z-20 w-full max-w-[240px] sm:max-w-sm pointer-events-none">
+        <div className="absolute left-4 sm:left-12 lg:left-16 top-[12%] sm:top-1/2 sm:-translate-y-1/2 z-20 w-full max-w-[280px] sm:max-w-sm pointer-events-none">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeStage}
@@ -321,16 +406,16 @@ export function ScrollHero() {
               className="flex flex-col gap-1.5 sm:gap-2.5"
             >
               <div className="flex items-center gap-2">
-                <span className="text-[10px] sm:text-xs font-mono font-bold tracking-widest text-[#38bdf8] uppercase">
+                <span className="text-xs sm:text-sm font-mono font-bold tracking-widest text-[#38bdf8] uppercase">
                   {leftStage.num} // {leftStage.tag}
                 </span>
               </div>
 
-              <h2 className="font-display font-extrabold text-lg sm:text-3xl lg:text-4xl text-white tracking-tight leading-tight">
+              <h2 className="font-display font-extrabold text-xl sm:text-3xl lg:text-4xl text-white tracking-tight leading-tight">
                 {leftStage.title}
               </h2>
 
-              <p className="text-slate-400 text-[11px] sm:text-sm leading-relaxed max-w-xs">
+              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-xs">
                 {leftStage.desc}
               </p>
             </motion.div>
@@ -338,7 +423,7 @@ export function ScrollHero() {
         </div>
 
         {/* ─── RIGHT FLANK: Pure Floating Typography ─────────────── */}
-        <div className="absolute right-4 sm:right-12 lg:right-16 bottom-[16%] top-auto sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2 z-20 w-full max-w-[240px] sm:max-w-sm text-right pointer-events-none">
+        <div className="absolute right-4 sm:right-12 lg:right-16 bottom-[16%] top-auto sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2 z-20 w-full max-w-[280px] sm:max-w-sm text-right pointer-events-none">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeStage}
@@ -348,15 +433,15 @@ export function ScrollHero() {
               transition={{ duration: 0.3, ease: "easeOut" }}
               className="flex flex-col items-end gap-1 sm:gap-2"
             >
-              <span className="font-display font-extrabold text-2xl sm:text-4xl lg:text-5xl text-gradient-blue tracking-tight">
+              <span className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-gradient-blue tracking-tight">
                 {rightStandard.metric}
               </span>
 
-              <h3 className="font-display font-bold text-sm sm:text-xl text-white">
+              <h3 className="font-display font-bold text-base sm:text-xl text-white">
                 {rightStandard.title}
               </h3>
 
-              <p className="text-slate-400 text-[11px] sm:text-sm leading-relaxed max-w-xs">
+              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-xs">
                 {rightStandard.desc}
               </p>
             </motion.div>
@@ -371,7 +456,7 @@ export function ScrollHero() {
             pointerEvents: isSettled ? "auto" : "none",
           }}
           transition={{ duration: 0.35, ease: "easeOut" }}
-          className="absolute bottom-4 sm:bottom-6 inset-x-0 z-20 flex justify-center px-4"
+          className="absolute bottom-2 sm:bottom-3 inset-x-0 z-20 flex justify-center px-4"
         >
           <div className="flex items-center gap-3">
             <Link href="/contact" className="btn-primary text-xs py-2.5 px-6 rounded-full font-semibold shadow-[0_0_24px_rgba(0,132,255,0.4)]">

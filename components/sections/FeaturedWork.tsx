@@ -30,6 +30,44 @@ export function FeaturedWork() {
       });
   }, []);
 
+  // Sync modal state with URL hash (#project-slug) for browser back button support
+  useEffect(() => {
+    const handleHashChange = () => {
+      const rawHash = window.location.hash.replace("#", "");
+      if (!rawHash) {
+        setSelectedProject(null);
+      } else if (projectList.length > 0) {
+        const found = projectList.find((p) => p.slug === rawHash);
+        if (found) {
+          setSelectedProject(found);
+        }
+      }
+    };
+
+    handleHashChange();
+
+    window.addEventListener("popstate", handleHashChange);
+    window.addEventListener("hashchange", handleHashChange);
+    return () => {
+      window.removeEventListener("popstate", handleHashChange);
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, [projectList]);
+
+  const openProjectModal = (project: Project) => {
+    setSelectedProject(project);
+    if (window.location.hash !== `#${project.slug}`) {
+      window.history.pushState({ modal: true }, "", `#${project.slug}`);
+    }
+  };
+
+  const closeProjectModal = () => {
+    setSelectedProject(null);
+    if (window.location.hash) {
+      window.history.pushState("", document.title, window.location.pathname + window.location.search);
+    }
+  };
+
   return (
     <section className="section-padding relative overflow-hidden bg-[#030712]" id="work">
       <div className="section-container relative z-10">
@@ -148,9 +186,12 @@ export function FeaturedWork() {
                     </div>
 
                     {/* Action Buttons: View Details (Modal) & Live Site — Side by Side Center Aligned on Mobile */}
-                    <div className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center pt-4 border-t border-white/10 w-full text-center items-center justify-center mt-3">
+                    <div
+                      className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center pt-5 border-t border-white/10 w-full text-center items-center justify-center"
+                      style={{ marginTop: "24px" }}
+                    >
                       <button
-                        onClick={() => setSelectedProject(project)}
+                        onClick={() => openProjectModal(project)}
                         className="btn-secondary text-xs py-3 px-2 sm:px-5 rounded-[10px] font-semibold flex items-center justify-center gap-1.5 w-full text-center cursor-pointer"
                       >
                         <Sparkles size={14} className="text-[#38bdf8]" />
@@ -197,7 +238,7 @@ export function FeaturedWork() {
       {/* Project Details Modal Popup */}
       <ProjectModal
         project={selectedProject}
-        onClose={() => setSelectedProject(null)}
+        onClose={closeProjectModal}
       />
     </section>
   );

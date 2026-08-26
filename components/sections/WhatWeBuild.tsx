@@ -269,36 +269,38 @@ export function WhatWeBuild() {
         >
           {/* Main Heading: Specialized Infrastructure Modules */}
           <div
-            className="flex items-center gap-3.5"
-            style={{ marginTop: "56px", marginBottom: "28px" }}
+            className="flex items-center gap-4"
+            style={{ marginTop: "64px", marginBottom: "36px" }}
           >
             <h4 className="text-xs sm:text-sm font-mono font-bold tracking-widest text-white uppercase">
               Specialized Infrastructure Modules
             </h4>
-            <div className="flex-1 h-px bg-white/10" />
+            <div className="flex-1 h-px bg-gradient-to-r from-white/15 to-transparent" />
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-            {SPECIALIZED_MODULES.map((item, i) => {
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {SPECIALIZED_MODULES.map((item) => {
               const Icon = item.icon;
               return (
                 <div
                   key={item.title}
-                  className="group rounded-[14px] bg-gradient-to-b from-[#091126]/80 to-[#040816]/90 border border-white/15 hover:border-[#38bdf8]/40 shadow-[0_4px_20px_rgba(0,0,0,0.3)] transition-all duration-300 p-3.5 sm:p-6"
+                  className="group relative h-full rounded-2xl bg-gradient-to-b from-[#0a132c]/90 via-[#070e22]/90 to-[#040816]/95 border border-white/15 hover:border-[#38bdf8]/50 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.36)] hover:shadow-[0_12px_40px_rgba(0,132,255,0.2)] hover:-translate-y-1 flex flex-col justify-between"
+                  style={{ padding: "24px 20px" }}
                 >
-                  <div className="flex flex-col sm:flex-row items-start gap-2.5 sm:gap-4">
-                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-[9px] sm:rounded-[10px] bg-[#0084ff]/10 border border-[#0084ff]/25 flex items-center justify-center text-[#38bdf8] flex-shrink-0 group-hover:bg-[#0084ff]/20 group-hover:border-[#0084ff]/40 transition-all p-1.5 sm:p-2.5 mt-0.5">
-                      <Icon size={17} className="sm:hidden" />
-                      <Icon size={20} className="hidden sm:block" />
+                  <div>
+                    {/* Icon Box with generous 20px+ margin from top and left */}
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-[#0084ff]/20 to-[#38bdf8]/10 border border-[#38bdf8]/35 flex items-center justify-center text-[#38bdf8] mb-4 sm:mb-5 group-hover:scale-105 group-hover:border-[#38bdf8]/60 group-hover:shadow-[0_0_20px_rgba(56,189,248,0.3)] transition-all duration-300">
+                      <Icon size={20} className="sm:hidden" />
+                      <Icon size={22} className="hidden sm:block" />
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xs sm:text-base font-display font-bold text-white mb-1 sm:mb-2 group-hover:text-[#38bdf8] transition-colors leading-snug">
-                        {item.title}
-                      </p>
-                      <p className="text-[11px] sm:text-sm text-slate-300 leading-normal sm:leading-[1.6]">
-                        {item.desc}
-                      </p>
-                    </div>
+
+                    <h5 className="font-display font-bold text-sm sm:text-lg text-white mb-1.5 sm:mb-2 group-hover:text-[#38bdf8] transition-colors leading-snug">
+                      {item.title}
+                    </h5>
+
+                    <p className="text-xs sm:text-sm text-slate-300/80 leading-relaxed">
+                      {item.desc}
+                    </p>
                   </div>
                 </div>
               );

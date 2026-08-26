@@ -25,6 +25,44 @@ export default function WorkPage() {
       });
   }, []);
 
+  // Sync modal state with URL hash (#project-slug) for browser back button support
+  useEffect(() => {
+    const handleHashChange = () => {
+      const rawHash = window.location.hash.replace("#", "");
+      if (!rawHash) {
+        setSelectedProject(null);
+      } else if (projectList.length > 0) {
+        const found = projectList.find((p) => p.slug === rawHash);
+        if (found) {
+          setSelectedProject(found);
+        }
+      }
+    };
+
+    handleHashChange();
+
+    window.addEventListener("popstate", handleHashChange);
+    window.addEventListener("hashchange", handleHashChange);
+    return () => {
+      window.removeEventListener("popstate", handleHashChange);
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, [projectList]);
+
+  const openProjectModal = (project: Project) => {
+    setSelectedProject(project);
+    if (window.location.hash !== `#${project.slug}`) {
+      window.history.pushState({ modal: true }, "", `#${project.slug}`);
+    }
+  };
+
+  const closeProjectModal = () => {
+    setSelectedProject(null);
+    if (window.location.hash) {
+      window.history.pushState("", document.title, window.location.pathname + window.location.search);
+    }
+  };
+
   return (
     <div
       className="bg-[#030712] min-h-screen relative overflow-hidden"
@@ -70,9 +108,8 @@ export default function WorkPage() {
         {/* ─── Project Showcase Cards ───────────────────────────────────────── */}
         <div className="flex flex-col gap-8">
           {projectList.map((project, i) => {
-            const hasScreenshot = project.screenshots && project.screenshots.length > 0 && Boolean(project.screenshots[0]);
-            const screenshotUrl = hasScreenshot ? project.screenshots[0] : project.thumbnail;
-            const isLocalOrData = screenshotUrl?.startsWith("data:") || screenshotUrl?.startsWith("/") || screenshotUrl?.startsWith("http");
+            const displayImage = project.thumbnail || (project.screenshots && project.screenshots[0]) || (project.slug === "pyq-portal" ? "/img/pyqportal.webp" : "");
+            const hasDisplayImage = Boolean(displayImage && (displayImage.startsWith("data:") || displayImage.startsWith("/") || displayImage.startsWith("http")));
 
             return (
               <motion.div
@@ -109,10 +146,10 @@ export default function WorkPage() {
                     </div>
 
                     {/* Visual Centerpiece or Image Screenshot */}
-                    {hasScreenshot && isLocalOrData ? (
+                    {hasDisplayImage ? (
                       <div className="relative my-3 w-full rounded-lg overflow-hidden border border-white/10 aspect-[16/9] shadow-lg bg-[#02050e]">
                         <img
-                          src={screenshotUrl}
+                          src={displayImage}
                           alt={project.title}
                           className="w-full h-full object-cover object-top transition-transform duration-500 hover:scale-[1.02]"
                         />
@@ -160,10 +197,10 @@ export default function WorkPage() {
                     {/* Action Buttons: View Details (Modal) & Live Site */}
                     <div
                       className="flex flex-wrap items-center gap-3 pt-5 border-t border-white/10"
-                      style={{ marginTop: "12px" }}
+                      style={{ marginTop: "24px" }}
                     >
                       <button
-                        onClick={() => setSelectedProject(project)}
+                        onClick={() => openProjectModal(project)}
                         className="btn-secondary text-xs py-3 px-5 rounded-[10px] font-semibold inline-flex items-center gap-2 cursor-pointer"
                       >
                         <Sparkles size={14} className="text-[#38bdf8]" />
@@ -204,7 +241,7 @@ export default function WorkPage() {
       {/* Project Details Modal Popup */}
       <ProjectModal
         project={selectedProject}
-        onClose={() => setSelectedProject(null)}
+        onClose={closeProjectModal}
       />
     </div>
   );
