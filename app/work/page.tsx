@@ -127,7 +127,7 @@ export default function WorkPage() {
                   <div className="lg:col-span-7 relative rounded-[12px] bg-[#060b18] border border-white/10 flex flex-col justify-between shadow-2xl overflow-hidden min-h-0 sm:min-h-[360px] p-3.5 sm:p-6">
                     {/* Browser top-bar mockup */}
                     <div className="flex items-center justify-between border-b border-white/10 relative z-10 pb-3 mb-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 ml-1 sm:ml-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
                         <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
                         <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
@@ -135,7 +135,7 @@ export default function WorkPage() {
                       <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate max-w-[160px] sm:max-w-none">
                         {project.liveUrl ? project.liveUrl.replace(/^https?:\/\//, "") : `${project.slug}.zyrostudios.com`}
                       </span>
-                      <span className="text-[10px] font-mono font-bold text-[#38bdf8] bg-[#0084ff]/10 px-2 py-0.5 rounded border border-[#0084ff]/20">
+                      <span className="text-[10px] font-mono font-bold text-[#38bdf8] uppercase tracking-wider mr-1 sm:mr-2">
                         {project.status === "live" ? "LIVE" : "DEV"}
                       </span>
                     </div>
