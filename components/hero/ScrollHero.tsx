@@ -330,8 +330,8 @@ export function ScrollHero() {
           </div>
         </div>
 
-        {/* ─── RIGHT FLANK: Stage 01 Message (Shifted 8px up) ─── */}
-        <div className="absolute right-7 sm:right-12 bottom-[13%] sm:bottom-[14%] -translate-y-[3px] z-10 max-w-[280px] text-right pointer-events-none">
+        {/* ─── RIGHT FLANK: Stage 01 Message (Shifted 8px more up) ─── */}
+        <div className="absolute right-7 sm:right-12 bottom-[13%] sm:bottom-[14%] -translate-y-[11px] z-10 max-w-[280px] text-right pointer-events-none">
           <div className="flex flex-col items-end gap-1 sm:gap-1.5">
             <span className="font-display font-extrabold text-3xl sm:text-4xl text-gradient-blue tracking-tight">
               Turnkey
@@ -345,8 +345,8 @@ export function ScrollHero() {
           </div>
         </div>
 
-        {/* ─── BOTTOM ACTION BUTTONS: Generous 24px Bottom Clearance ─── */}
-        <div className="absolute bottom-6 inset-x-0 z-20 flex justify-center px-6">
+        {/* ─── BOTTOM ACTION BUTTONS: Positioned higher (bottom-10 sm:bottom-12) for immediate first viewport visibility ─── */}
+        <div className="absolute bottom-10 sm:bottom-12 inset-x-0 z-20 flex justify-center px-6">
           <div className="flex items-center gap-3">
             <Link
               href="/contact"
