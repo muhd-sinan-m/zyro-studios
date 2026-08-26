@@ -187,7 +187,7 @@ export function FeaturedWork() {
 
                     {/* Action Buttons: View Details (Modal) & Live Site — Side by Side Center Aligned on Mobile */}
                     <div
-                      className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center pt-5 border-t border-white/10 w-full text-center items-center justify-center"
+                      className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center pt-5 w-full text-center items-center justify-center"
                       style={{ marginTop: "24px" }}
                     >
                       <button

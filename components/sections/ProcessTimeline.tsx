@@ -78,7 +78,7 @@ export function ProcessTimeline() {
                 </p>
               </div>
 
-              <div className="mt-4 sm:mt-8 pt-3 sm:pt-4 border-t border-white/5 flex items-center justify-between">
+              <div className="mt-3 sm:mt-6 flex items-center justify-between">
                 <span className="text-[9px] sm:text-[10px] font-mono text-slate-500 uppercase tracking-widest font-semibold">
                   Phase {step.number}
                 </span>
@@ -112,7 +112,7 @@ export function ProcessTimeline() {
               </p>
             </div>
 
-            <div className="mt-3 sm:mt-6 pt-3 border-t border-white/10 flex items-center w-full">
+            <div className="mt-3 sm:mt-6 flex items-center justify-center w-full">
               <ArrowRevealButton
                 label="Start Project"
                 link="/contact"
@@ -123,11 +123,12 @@ export function ProcessTimeline() {
                   icon: "arrow",
                   background: "rgba(255, 255, 255, 0.18)",
                   color: "#FFFFFF",
-                  padding: 8,
-                  size: 14,
+                  padding: 6,
+                  size: 12,
                 }}
-                padding="10px 18px"
+                padding="8px 12px"
                 rounded={100}
+                font={{ fontSize: "11px", fontWeight: 700 }}
                 style={{ width: "100%" }}
               />
             </div>

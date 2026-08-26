@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, ExternalLink, Sparkles } from "lucide-react";
 import { projects } from "@/data/projects";
 import { Project } from "@/types";
@@ -122,22 +123,16 @@ export default function WorkPage() {
               >
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
                   
-                  {/* Visual Showcase / Live Site Frame (7 cols) */}
-                  <div
-                    className="lg:col-span-7 relative rounded-[12px] bg-[#060b18] border border-white/10 flex flex-col justify-between shadow-2xl overflow-hidden min-h-[360px]"
-                    style={{ padding: "24px" }}
-                  >
+                  {/* Visual Showcase / Live Site Frame (7 cols — Identical layout & alignment to Home Page FeaturedWork) */}
+                  <div className="lg:col-span-7 relative rounded-[12px] bg-[#060b18] border border-white/10 flex flex-col justify-between shadow-2xl overflow-hidden min-h-0 sm:min-h-[360px] p-3.5 sm:p-6">
                     {/* Browser top-bar mockup */}
-                    <div
-                      className="flex items-center justify-between border-b border-white/10 relative z-10"
-                      style={{ paddingBottom: "14px" }}
-                    >
+                    <div className="flex items-center justify-between border-b border-white/10 relative z-10 pb-3 mb-2">
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
                         <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
                         <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
                       </div>
-                      <span className="text-[11px] font-mono text-slate-400">
+                      <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 truncate max-w-[160px] sm:max-w-none">
                         {project.liveUrl ? project.liveUrl.replace(/^https?:\/\//, "") : `${project.slug}.zyrostudios.com`}
                       </span>
                       <span className="text-[10px] font-mono font-bold text-[#38bdf8] bg-[#0084ff]/10 px-2 py-0.5 rounded border border-[#0084ff]/20">
@@ -148,10 +143,12 @@ export default function WorkPage() {
                     {/* Visual Centerpiece or Image Screenshot */}
                     {hasDisplayImage ? (
                       <div className="relative my-3 w-full rounded-lg overflow-hidden border border-white/10 aspect-[16/9] shadow-lg bg-[#02050e]">
-                        <img
+                        <Image
                           src={displayImage}
                           alt={project.title}
-                          className="w-full h-full object-cover object-top transition-transform duration-500 hover:scale-[1.02]"
+                          fill
+                          className="object-cover object-top transition-transform duration-500 hover:scale-[1.02]"
+                          sizes="(max-width: 768px) 100vw, 50vw"
                         />
                       </div>
                     ) : (
@@ -196,7 +193,7 @@ export default function WorkPage() {
 
                     {/* Action Buttons: View Details (Modal) & Live Site */}
                     <div
-                      className="flex flex-wrap items-center gap-3 pt-5 border-t border-white/10"
+                      className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center pt-5 w-full text-center items-center justify-center"
                       style={{ marginTop: "24px" }}
                     >
                       <button
