@@ -292,7 +292,7 @@ export function ScrollHero() {
       aria-label="Interactive scroll animation experience"
     >
       {/* ─── MOBILE-ONLY HERO LAYOUT (Full-Screen Background Image, Stage 01 Flanking Alignment) ─── */}
-      <div className="md:hidden relative min-h-[100dvh] w-full flex flex-col justify-between items-center bg-[#030712] overflow-hidden">
+      <div className="md:hidden relative h-screen w-full flex flex-col justify-between items-center bg-[#030712] overflow-hidden">
         {/* Full-Screen Background Image for Mobile Viewport */}
         <img
           src="/img/mobile-hero.webp"
