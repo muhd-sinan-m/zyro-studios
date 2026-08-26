@@ -330,8 +330,8 @@ export function ScrollHero() {
           </div>
         </div>
 
-        {/* ─── RIGHT FLANK: Stage 01 Message (Pushed 5px lower for clear hero balance) ─── */}
-        <div className="absolute right-7 sm:right-12 bottom-[13%] sm:bottom-[14%] translate-y-[5px] z-10 max-w-[280px] text-right pointer-events-none">
+        {/* ─── RIGHT FLANK: Stage 01 Message (Shifted 8px up) ─── */}
+        <div className="absolute right-7 sm:right-12 bottom-[13%] sm:bottom-[14%] -translate-y-[3px] z-10 max-w-[280px] text-right pointer-events-none">
           <div className="flex flex-col items-end gap-1 sm:gap-1.5">
             <span className="font-display font-extrabold text-3xl sm:text-4xl text-gradient-blue tracking-tight">
               Turnkey
