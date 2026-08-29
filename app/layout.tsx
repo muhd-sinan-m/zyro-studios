@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import PublicLayout from "@/components/navigation/PublicLayout";
 
@@ -131,6 +132,19 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-bg text-zyro-white antialiased" suppressHydrationWarning>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-BVLJCMCSCX"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-BVLJCMCSCX');
+          `}
+        </Script>
         <PublicLayout>{children}</PublicLayout>
       </body>
     </html>
