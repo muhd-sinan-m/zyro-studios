@@ -74,6 +74,9 @@ export const metadata: Metadata = {
       { rel: "android-chrome-512x512", url: "/favicon/android-chrome-512x512.png" },
     ],
   },
+  verification: {
+    google: "6TkbjzfigeR4hnswayZI8sx7ThG2Qy2wLu-Vkl4OrmU",
+  },
 };
 
 // JSON-LD structured data
@@ -121,6 +124,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="google-site-verification" content="6TkbjzfigeR4hnswayZI8sx7ThG2Qy2wLu-Vkl4OrmU" />
         <link rel="icon" href="/favicon/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
