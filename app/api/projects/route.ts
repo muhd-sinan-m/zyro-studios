@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   try {
     const sql = includeAll
       ? `SELECT * FROM public.projects ORDER BY created_at ASC, id ASC`
-      : `SELECT * FROM public.projects WHERE status != 'archived' ORDER BY created_at ASC, id ASC`;
+      : `SELECT * FROM public.projects WHERE status != 'archived' AND status != 'hidden' AND is_hidden = false ORDER BY created_at ASC, id ASC`;
     dbProjects = await query(sql);
   } catch (err) {
     console.error("Error fetching projects from DB:", err);
@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
     liveUrl: p.live_url || "",
     year: p.year || 2026,
     featured: Boolean(p.featured),
+    isHidden: Boolean(p.is_hidden),
     status: p.status || "live",
     problemStatement: p.problem_statement || "",
     solution: p.solution || "",
@@ -63,6 +64,7 @@ export async function POST(req: NextRequest) {
       liveUrl,
       year,
       featured,
+      isHidden,
       status,
       problemStatement,
       solution,
@@ -88,9 +90,9 @@ export async function POST(req: NextRequest) {
       INSERT INTO public.projects (
         title, slug, category, short_description, full_description,
         features, thumbnail_url, modal_image_url, screenshots, live_url,
-        year, featured, status, problem_statement, solution, client
+        year, featured, is_hidden, status, problem_statement, solution, client
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
       RETURNING *
       `,
       [
@@ -106,6 +108,7 @@ export async function POST(req: NextRequest) {
         liveUrl || null,
         Number(year) || 2026,
         Boolean(featured),
+        Boolean(isHidden),
         status || "live",
         problemStatement || null,
         solution || null,
@@ -145,6 +148,7 @@ export async function PUT(req: NextRequest) {
       liveUrl,
       year,
       featured,
+      isHidden,
       status,
       problemStatement,
       solution,
@@ -171,12 +175,13 @@ export async function PUT(req: NextRequest) {
         live_url = COALESCE($10, live_url),
         year = COALESCE($11, year),
         featured = COALESCE($12, featured),
-        status = COALESCE($13, status),
-        problem_statement = COALESCE($14, problem_statement),
-        solution = COALESCE($15, solution),
-        client = COALESCE($16, client),
+        is_hidden = COALESCE($13, is_hidden),
+        status = COALESCE($14, status),
+        problem_statement = COALESCE($15, problem_statement),
+        solution = COALESCE($16, solution),
+        client = COALESCE($17, client),
         updated_at = now()
-      WHERE id::text = $17 OR slug = $17
+      WHERE id::text = $18 OR slug = $18
       RETURNING *
       `,
       [
@@ -192,6 +197,7 @@ export async function PUT(req: NextRequest) {
         liveUrl || null,
         year ? Number(year) : null,
         featured !== undefined ? featured : null,
+        isHidden !== undefined ? isHidden : null,
         status || null,
         problemStatement || null,
         solution || null,
@@ -209,6 +215,67 @@ export async function PUT(req: NextRequest) {
     console.error("Project update error:", error);
     return NextResponse.json(
       { error: "Unable to update project. Please try again." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  const session = await verifyAdminRequest(req);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const body = await req.json();
+    const { id, isHidden } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Project ID is required" }, { status: 400 });
+    }
+
+    let rows: any[] = [];
+    if (isHidden !== undefined) {
+      rows = await query(
+        `
+        UPDATE public.projects
+        SET
+          is_hidden = $1,
+          updated_at = now()
+        WHERE id::text = $2 OR slug = $2
+        RETURNING *
+        `,
+        [Boolean(isHidden), id]
+      );
+    } else {
+      // Toggle current state
+      rows = await query(
+        `
+        UPDATE public.projects
+        SET
+          is_hidden = NOT COALESCE(is_hidden, false),
+          updated_at = now()
+        WHERE id::text = $1 OR slug = $1
+        RETURNING *
+        `,
+        [id]
+      );
+    }
+
+    if (rows.length === 0) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Project ${rows[0].is_hidden ? "hidden" : "visible"} successfully`,
+      project: rows[0],
+      isHidden: rows[0].is_hidden,
+    });
+  } catch (error: any) {
+    console.error("Project patch error:", error);
+    return NextResponse.json(
+      { error: "Unable to update project visibility. Please try again." },
       { status: 500 }
     );
   }
@@ -244,3 +311,4 @@ export async function DELETE(req: NextRequest) {
     );
   }
 }
+

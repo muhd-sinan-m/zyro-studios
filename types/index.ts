@@ -16,6 +16,7 @@ export interface Project {
   githubUrl?: string;
   year: number;
   featured: boolean;
+  isHidden?: boolean;
   status: "live" | "development" | "completed";
   problemStatement?: string;
   solution?: string;

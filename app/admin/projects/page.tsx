@@ -22,6 +22,10 @@ import {
   List,
   ChevronLeft,
   ChevronRight,
+  Eye,
+  EyeOff,
+  Loader2,
+  ShieldAlert,
 } from "lucide-react";
 import { Project } from "@/types";
 
@@ -51,6 +55,7 @@ export default function AdminProjectsPage() {
   const [uploadingModalImage, setUploadingModalImage] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [selectedDetailsProject, setSelectedDetailsProject] = useState<any | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -67,6 +72,7 @@ export default function AdminProjectsPage() {
     screenshot: "",
     modalImage: "",
     featured: true,
+    isHidden: false,
     status: "live",
   });
 
@@ -91,6 +97,59 @@ export default function AdminProjectsPage() {
     fetchProjects();
   }, []);
 
+  const handleToggleVisibility = async (project: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const id = project.id || project.slug;
+    setTogglingId(id);
+    const newHiddenState = !project.isHidden;
+
+    // Optimistic UI update
+    setProjects((prev) =>
+      prev.map((p) =>
+        (p.id === id || p.slug === id) ? { ...p, isHidden: newHiddenState } : p
+      )
+    );
+
+    if (selectedDetailsProject && (selectedDetailsProject.id === id || selectedDetailsProject.slug === id)) {
+      setSelectedDetailsProject((prev: any) => ({ ...prev, isHidden: newHiddenState }));
+    }
+
+    try {
+      const res = await fetch("/api/projects", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, isHidden: newHiddenState }),
+      });
+
+      if (!res.ok) {
+        // Revert on error
+        setProjects((prev) =>
+          prev.map((p) =>
+            (p.id === id || p.slug === id) ? { ...p, isHidden: !newHiddenState } : p
+          )
+        );
+        if (selectedDetailsProject && (selectedDetailsProject.id === id || selectedDetailsProject.slug === id)) {
+          setSelectedDetailsProject((prev: any) => ({ ...prev, isHidden: !newHiddenState }));
+        }
+        alert("Failed to update project visibility. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      // Revert on network error
+      setProjects((prev) =>
+        prev.map((p) =>
+          (p.id === id || p.slug === id) ? { ...p, isHidden: !newHiddenState } : p
+        )
+      );
+      if (selectedDetailsProject && (selectedDetailsProject.id === id || selectedDetailsProject.slug === id)) {
+        setSelectedDetailsProject((prev: any) => ({ ...prev, isHidden: !newHiddenState }));
+      }
+      alert("Network error updating visibility.");
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   const openCreateModal = () => {
     setEditingId(null);
     setFormData({
@@ -108,6 +167,7 @@ export default function AdminProjectsPage() {
       screenshot: "",
       modalImage: "",
       featured: true,
+      isHidden: false,
       status: "live",
     });
     setIsModalOpen(true);
@@ -136,6 +196,7 @@ export default function AdminProjectsPage() {
       screenshot: hasImg,
       modalImage: hasModalImg,
       featured: project.featured !== undefined ? project.featured : true,
+      isHidden: Boolean(project.isHidden),
       status: project.status || "live",
     });
     setIsModalOpen(true);
@@ -256,6 +317,7 @@ export default function AdminProjectsPage() {
           formData.modalImage || formData.screenshot || "/logo/zyro-logo.jpg",
         ],
         featured: formData.featured,
+        isHidden: formData.isHidden,
         status: formData.status,
       };
 
@@ -281,7 +343,7 @@ export default function AdminProjectsPage() {
 
   const handleDeleteProject = async (id: string, slug: string) => {
     if (slug === "pyq-portal") {
-      alert("PyQ Portal is the baseline flagship project and cannot be deleted.");
+      alert("PyQ Portal is the baseline flagship project and cannot be deleted. You can Hide it instead.");
       return;
     }
 
@@ -301,15 +363,28 @@ export default function AdminProjectsPage() {
 
   const filteredProjects = projects.filter((p) => {
     const matchesSearch =
-      p.title.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.toLowerCase().includes(search.toLowerCase()) ||
+      p.title?.toLowerCase().includes(search.toLowerCase()) ||
+      p.category?.toLowerCase().includes(search.toLowerCase()) ||
       (p.shortDescription && p.shortDescription.toLowerCase().includes(search.toLowerCase()));
 
-    const matchesStatus = statusFilter === "all" || p.status === statusFilter;
+    let matchesStatus = true;
+    if (statusFilter === "visible") {
+      matchesStatus = !p.isHidden;
+    } else if (statusFilter === "hidden") {
+      matchesStatus = Boolean(p.isHidden);
+    } else if (statusFilter === "live") {
+      matchesStatus = p.status === "live";
+    } else if (statusFilter === "development") {
+      matchesStatus = p.status === "development" || p.status === "in-development";
+    }
+
     const matchesType = typeFilter === "all" || p.category === typeFilter;
 
     return matchesSearch && matchesStatus && matchesType;
   });
+
+  const hiddenCount = projects.filter((p) => p.isHidden).length;
+  const visibleCount = projects.filter((p) => !p.isHidden).length;
 
   return (
     <div className="pb-12" style={{ color: "#0f172a" }}>
@@ -319,21 +394,36 @@ export default function AdminProjectsPage() {
         style={{ marginBottom: "32px" }}
       >
         <div>
-          <h1
-            className="font-display"
-            style={{
-              color: "#111827",
-              fontSize: "36px",
-              fontWeight: 900,
-              lineHeight: 1.15,
-              letterSpacing: "-0.02em",
-              marginBottom: "4px",
-            }}
-          >
-            Projects Manager
-          </h1>
-          <p style={{ color: "#6b7280", fontSize: "14px", margin: 0 }}>
-            Deploy custom application showcases matching the exact PyQ Portal card design.
+          <div className="flex items-center gap-3">
+            <h1
+              className="font-display"
+              style={{
+                color: "#111827",
+                fontSize: "36px",
+                fontWeight: 900,
+                lineHeight: 1.15,
+                letterSpacing: "-0.02em",
+                margin: 0,
+              }}
+            >
+              Projects Manager
+            </h1>
+            <span
+              style={{
+                backgroundColor: "#f1f5f9",
+                border: "1px solid #e2e8f0",
+                color: "#475569",
+                fontSize: "12px",
+                fontWeight: 700,
+                padding: "2px 10px",
+                borderRadius: "9999px",
+              }}
+            >
+              {projects.length} Total ({visibleCount} Live, {hiddenCount} Hidden)
+            </span>
+          </div>
+          <p style={{ color: "#6b7280", fontSize: "14px", marginTop: "4px", marginBottom: 0 }}>
+            Manage client showcases, customize features, and toggle public website visibility at any time.
           </p>
         </div>
 
@@ -341,7 +431,7 @@ export default function AdminProjectsPage() {
           {/* Refresh/Sync Button */}
           <button
             onClick={fetchProjects}
-            className="flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+            className="flex items-center justify-center transition-all cursor-pointer shadow-2xs hover:bg-slate-50"
             style={{
               backgroundColor: "#ffffff",
               border: "1px solid #e5e7eb",
@@ -357,7 +447,7 @@ export default function AdminProjectsPage() {
           {/* Deploy New Project Button */}
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 transition-all cursor-pointer shadow-xs"
+            className="flex items-center gap-2 transition-all cursor-pointer shadow-xs hover:bg-[#1d4ed8]"
             style={{
               backgroundColor: "#2563eb",
               color: "#ffffff",
@@ -384,7 +474,7 @@ export default function AdminProjectsPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search projects by title or application type..."
+            placeholder="Search projects by title or category..."
             style={{
               backgroundColor: "#ffffff",
               border: "1px solid #e5e7eb",
@@ -411,8 +501,8 @@ export default function AdminProjectsPage() {
         </div>
 
         {/* Right: Dropdown Filters & Grid/List View Controls */}
-        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-          {/* Status Filter */}
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+          {/* Status & Visibility Filter */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -422,14 +512,16 @@ export default function AdminProjectsPage() {
               borderRadius: "8px",
               padding: "9px 14px",
               fontSize: "12px",
-              fontWeight: 500,
+              fontWeight: 600,
               color: "#374151",
               outline: "none",
               cursor: "pointer",
             }}
           >
-            <option value="all">All Status</option>
-            <option value="live">Live Only</option>
+            <option value="all">All Projects ({projects.length})</option>
+            <option value="visible">Visible on Site ({visibleCount})</option>
+            <option value="hidden">Hidden from Site ({hiddenCount})</option>
+            <option value="live">Live Status</option>
             <option value="development">In Development</option>
           </select>
 
@@ -449,7 +541,7 @@ export default function AdminProjectsPage() {
               cursor: "pointer",
             }}
           >
-            <option value="all">All Types</option>
+            <option value="all">All Categories</option>
             {CATEGORY_OPTIONS.map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
@@ -491,7 +583,7 @@ export default function AdminProjectsPage() {
         </div>
       </div>
 
-      {/* ─── Projects Showcase Grid ─────────────────────────────────────────── */}
+      {/* ─── Projects Display: Empty State ───────────────────────────────────── */}
       {filteredProjects.length === 0 ? (
         <div
           style={{
@@ -504,16 +596,19 @@ export default function AdminProjectsPage() {
         >
           <FolderGit2 size={40} style={{ color: "#9ca3af", margin: "0 auto 12px auto", opacity: 0.6 }} />
           <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#111827", margin: 0 }}>
-            No projects found
+            No projects match your filter
           </h3>
           <p style={{ fontSize: "13px", color: "#6b7280", marginTop: "4px" }}>
-            Try adjusting your search criteria or click "Deploy New Project" to add one.
+            Try adjusting your search query or status filter to see other projects.
           </p>
         </div>
-      ) : (
+      ) : viewMode === "grid" ? (
+        /* ─── GRID VIEW ───────────────────────────────────────────────────────── */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ gap: "24px" }}>
           {filteredProjects.map((p) => {
             const isPyq = p.slug === "pyq-portal";
+            const isHidden = Boolean(p.isHidden);
+            const isToggling = togglingId === (p.id || p.slug);
             const hasImg = p.screenshots && p.screenshots.length > 0 && p.screenshots[0];
             const imgUrl = hasImg ? p.screenshots[0] : p.thumbnail;
             const featuresList = p.features && p.features.length > 0 ? p.features : [
@@ -525,13 +620,15 @@ export default function AdminProjectsPage() {
             return (
               <div
                 key={p.slug || p.id}
-                className="flex flex-col justify-between transition-all hover:shadow-md"
+                className={`flex flex-col justify-between transition-all hover:shadow-md ${
+                  isHidden ? "border-amber-200 bg-amber-50/20" : "bg-white"
+                }`}
                 style={{
-                  backgroundColor: "#ffffff",
-                  border: "1px solid #e5e7eb",
+                  border: isHidden ? "1px solid #fcd34d" : "1px solid #e5e7eb",
                   borderRadius: "16px",
                   overflow: "hidden",
                   boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                  position: "relative",
                 }}
               >
                 <div>
@@ -554,6 +651,8 @@ export default function AdminProjectsPage() {
                           height: "100%",
                           objectFit: "cover",
                           objectPosition: "top",
+                          opacity: isHidden ? 0.75 : 1,
+                          filter: isHidden ? "grayscale(30%)" : "none",
                         }}
                       />
                     ) : (
@@ -565,36 +664,106 @@ export default function AdminProjectsPage() {
                       </div>
                     )}
 
-                    {/* Top Right Live Pill */}
+                    {/* Top Left Hidden/Status Pill */}
                     <div
                       style={{
                         position: "absolute",
                         top: "12px",
+                        left: "12px",
+                        zIndex: 10,
+                      }}
+                    >
+                      {isHidden ? (
+                        <div
+                          style={{
+                            backgroundColor: "rgba(254, 243, 199, 0.96)",
+                            backdropFilter: "blur(4px)",
+                            border: "1px solid #f59e0b",
+                            borderRadius: "9999px",
+                            padding: "3px 10px",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            color: "#92400e",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "5px",
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                          }}
+                        >
+                          <EyeOff size={13} className="text-amber-600" />
+                          <span>Hidden from Site</span>
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            backgroundColor: "rgba(255, 255, 255, 0.95)",
+                            backdropFilter: "blur(4px)",
+                            border: "1px solid #d1fae5",
+                            borderRadius: "9999px",
+                            padding: "3px 10px",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            color: "#059669",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: "6px",
+                              height: "6px",
+                              borderRadius: "50%",
+                              backgroundColor: "#059669",
+                            }}
+                          />
+                          <span>Visible Live</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Top Right Quick Hide/Unhide Toggle Button */}
+                    <button
+                      onClick={(e) => handleToggleVisibility(p, e)}
+                      disabled={isToggling}
+                      title={isHidden ? "Click to unhide project on live website" : "Click to hide project from live website"}
+                      style={{
+                        position: "absolute",
+                        top: "12px",
                         right: "12px",
-                        backgroundColor: "rgba(255, 255, 255, 0.95)",
+                        backgroundColor: isHidden ? "#ffffff" : "rgba(15, 23, 42, 0.85)",
                         backdropFilter: "blur(4px)",
-                        border: "1px solid #d1fae5",
+                        border: isHidden ? "1px solid #f59e0b" : "1px solid rgba(255, 255, 255, 0.2)",
                         borderRadius: "9999px",
-                        padding: "3px 10px",
+                        padding: "4px 12px",
                         fontSize: "11px",
                         fontWeight: 700,
-                        color: "#059669",
+                        color: isHidden ? "#b45309" : "#ffffff",
                         display: "flex",
                         alignItems: "center",
                         gap: "6px",
-                        boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                        cursor: "pointer",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                        zIndex: 10,
+                        transition: "all 0.15s ease",
                       }}
+                      className="hover:scale-105 active:scale-95"
                     >
-                      <span
-                        style={{
-                          width: "6px",
-                          height: "6px",
-                          borderRadius: "50%",
-                          backgroundColor: "#059669",
-                        }}
-                      />
-                      <span>Live</span>
-                    </div>
+                      {isToggling ? (
+                        <Loader2 size={13} className="animate-spin text-slate-400" />
+                      ) : isHidden ? (
+                        <>
+                          <Eye size={13} className="text-emerald-600" />
+                          <span>Unhide</span>
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff size={13} className="text-amber-400" />
+                          <span>Hide</span>
+                        </>
+                      )}
+                    </button>
                   </div>
 
                   {/* Card Content Body */}
@@ -607,7 +776,7 @@ export default function AdminProjectsPage() {
                         fontFamily: "monospace",
                         letterSpacing: "0.05em",
                         textTransform: "uppercase",
-                        color: "#2563eb",
+                        color: isHidden ? "#64748b" : "#2563eb",
                         margin: "0 0 4px 0",
                       }}
                     >
@@ -620,7 +789,7 @@ export default function AdminProjectsPage() {
                       style={{
                         fontSize: "20px",
                         fontWeight: 800,
-                        color: "#111827",
+                        color: isHidden ? "#334155" : "#111827",
                         margin: "0 0 8px 0",
                         lineHeight: 1.25,
                       }}
@@ -640,13 +809,17 @@ export default function AdminProjectsPage() {
                       {p.shortDescription || "A modern application showcase built for custom client solutions."}
                     </p>
 
-                    {/* Feature Points List with Blue Checkmarks */}
+                    {/* Feature Points List with Checkmarks */}
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {featuresList.slice(0, 3).map((feat: string, idx: number) => (
                         <div key={idx} className="flex items-start" style={{ gap: "8px" }}>
                           <CheckCircle2
                             size={15}
-                            style={{ color: "#2563eb", flexShrink: 0, marginTop: "2px" }}
+                            style={{
+                              color: isHidden ? "#94a3b8" : "#2563eb",
+                              flexShrink: 0,
+                              marginTop: "2px",
+                            }}
                           />
                           <span style={{ fontSize: "12px", color: "#374151", lineHeight: 1.4 }}>
                             {feat}
@@ -663,7 +836,7 @@ export default function AdminProjectsPage() {
                   style={{
                     padding: "16px 24px",
                     borderTop: "1px solid #f3f4f6",
-                    backgroundColor: "#ffffff",
+                    backgroundColor: isHidden ? "#fffbeb" : "#ffffff",
                   }}
                 >
                   {/* Live Site Link */}
@@ -694,7 +867,7 @@ export default function AdminProjectsPage() {
                     <button
                       onClick={() => setSelectedDetailsProject(p)}
                       style={{
-                        backgroundColor: "#f9fafb",
+                        backgroundColor: "#ffffff",
                         border: "1px solid #e5e7eb",
                         borderRadius: "8px",
                         padding: "6px 14px",
@@ -703,7 +876,7 @@ export default function AdminProjectsPage() {
                         color: "#374151",
                         cursor: "pointer",
                       }}
-                      className="hover:bg-slate-100"
+                      className="hover:bg-slate-50"
                     >
                       View Details
                     </button>
@@ -713,7 +886,7 @@ export default function AdminProjectsPage() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setActiveMenuId(activeMenuId === p.slug ? null : p.slug);
+                          setActiveMenuId(activeMenuId === (p.slug || p.id) ? null : (p.slug || p.id));
                         }}
                         style={{
                           backgroundColor: "#ffffff",
@@ -732,22 +905,44 @@ export default function AdminProjectsPage() {
                       </button>
 
                       {/* Dropdown Menu Popup */}
-                      {activeMenuId === p.slug && (
+                      {activeMenuId === (p.slug || p.id) && (
                         <div
                           style={{
                             position: "absolute",
                             right: 0,
                             bottom: "100%",
                             marginBottom: "6px",
-                            width: "140px",
+                            width: "180px",
                             backgroundColor: "#ffffff",
                             border: "1px solid #e5e7eb",
                             borderRadius: "8px",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
                             zIndex: 40,
                             padding: "4px",
                           }}
                         >
+                          {/* Hide / Unhide option */}
+                          <button
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              handleToggleVisibility(p);
+                            }}
+                            className="w-full text-left flex items-center gap-2 px-3 py-2 text-xs font-semibold hover:bg-slate-50 rounded-md cursor-pointer"
+                          >
+                            {isHidden ? (
+                              <>
+                                <Eye size={14} className="text-emerald-600" />
+                                <span className="text-emerald-700">Unhide (Show on site)</span>
+                              </>
+                            ) : (
+                              <>
+                                <EyeOff size={14} className="text-amber-600" />
+                                <span className="text-amber-700">Hide from website</span>
+                              </>
+                            )}
+                          </button>
+
+                          {/* Edit option */}
                           <button
                             onClick={() => {
                               setActiveMenuId(null);
@@ -768,7 +963,7 @@ export default function AdminProjectsPage() {
                               className="w-full text-left flex items-center gap-2 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-md cursor-pointer"
                             >
                               <Trash2 size={13} className="text-red-600" />
-                              <span>Delete</span>
+                              <span>Delete Project</span>
                             </button>
                           )}
                         </div>
@@ -780,16 +975,158 @@ export default function AdminProjectsPage() {
             );
           })}
         </div>
+      ) : (
+        /* ─── LIST VIEW ───────────────────────────────────────────────────────── */
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            border: "1px solid #e5e7eb",
+            borderRadius: "16px",
+            overflow: "hidden",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+          }}
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse" style={{ fontSize: "13px" }}>
+              <thead>
+                <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-mono text-xs uppercase tracking-wider">
+                  <th className="py-3.5 px-6 font-semibold">Project</th>
+                  <th className="py-3.5 px-4 font-semibold">Category</th>
+                  <th className="py-3.5 px-4 font-semibold">Client / Year</th>
+                  <th className="py-3.5 px-4 font-semibold">Site Visibility</th>
+                  <th className="py-3.5 px-6 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredProjects.map((p) => {
+                  const isPyq = p.slug === "pyq-portal";
+                  const isHidden = Boolean(p.isHidden);
+                  const isToggling = togglingId === (p.id || p.slug);
+                  const imgUrl = (p.screenshots && p.screenshots[0]) || p.thumbnail;
+
+                  return (
+                    <tr
+                      key={p.slug || p.id}
+                      className={`hover:bg-slate-50/80 transition-colors ${
+                        isHidden ? "bg-amber-50/30" : ""
+                      }`}
+                    >
+                      {/* Project Title + Thumbnail */}
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-10 rounded-lg bg-slate-900 overflow-hidden flex-shrink-0 border border-slate-200">
+                            {imgUrl ? (
+                              <img src={imgUrl} alt={p.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold font-mono">
+                                ZY
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-900 font-display m-0 leading-tight">
+                              {p.title}
+                            </p>
+                            <p className="text-xs text-slate-500 font-mono m-0 mt-0.5">/{p.slug}</p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Category */}
+                      <td className="py-4 px-4 text-xs font-medium text-slate-600">
+                        {p.category}
+                      </td>
+
+                      {/* Client / Year */}
+                      <td className="py-4 px-4 text-xs text-slate-600">
+                        <span>{p.client || "Zyro Studios"}</span>
+                        <span className="text-slate-400 ml-1.5 font-mono">({p.year || 2026})</span>
+                      </td>
+
+                      {/* Visibility Status & 1-Click Toggle */}
+                      <td className="py-4 px-4">
+                        <button
+                          onClick={() => handleToggleVisibility(p)}
+                          disabled={isToggling}
+                          style={{
+                            backgroundColor: isHidden ? "#fef3c7" : "#ecfdf5",
+                            border: isHidden ? "1px solid #fde68a" : "1px solid #a7f3d0",
+                            color: isHidden ? "#92400e" : "#065f46",
+                            padding: "4px 10px",
+                            borderRadius: "9999px",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            transition: "all 0.15s ease",
+                          }}
+                          className="hover:scale-105 active:scale-95"
+                          title={isHidden ? "Click to make visible on website" : "Click to hide from website"}
+                        >
+                          {isToggling ? (
+                            <Loader2 size={12} className="animate-spin text-slate-400" />
+                          ) : isHidden ? (
+                            <>
+                              <EyeOff size={12} className="text-amber-600" />
+                              <span>Hidden (Click to Unhide)</span>
+                            </>
+                          ) : (
+                            <>
+                              <Eye size={12} className="text-emerald-600" />
+                              <span>Visible (Click to Hide)</span>
+                            </>
+                          )}
+                        </button>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-4 px-6 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setSelectedDetailsProject(p)}
+                            className="px-2.5 py-1 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md cursor-pointer"
+                          >
+                            Details
+                          </button>
+                          <button
+                            onClick={() => openEditModal(p)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md cursor-pointer"
+                            title="Edit Project"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          {!isPyq && (
+                            <button
+                              onClick={() => handleDeleteProject(p.id, p.slug)}
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-md cursor-pointer"
+                              title="Delete Project"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
-      {/* ─── Bottom Pagination & Items Controls ─────────────────────────────── */}
+      {/* ─── Bottom Pagination & Info ───────────────────────────────────────── */}
       <div
         className="flex flex-col sm:flex-row items-center justify-between gap-4"
         style={{ marginTop: "36px" }}
       >
-        <div className="hidden sm:block" />
+        <div className="text-xs text-slate-500">
+          Showing {filteredProjects.length} of {projects.length} total projects
+        </div>
 
-        {/* Center: Pagination Numbers */}
+        {/* Center: Pagination */}
         <div className="flex items-center" style={{ gap: "6px" }}>
           <button
             style={{
@@ -830,29 +1167,10 @@ export default function AdminProjectsPage() {
           </button>
         </div>
 
-        {/* Right: Per Page Select */}
-        <div>
-          <select
-            style={{
-              backgroundColor: "#ffffff",
-              border: "1px solid #e5e7eb",
-              borderRadius: "8px",
-              padding: "6px 12px",
-              fontSize: "12px",
-              fontWeight: 500,
-              color: "#374151",
-              outline: "none",
-              cursor: "pointer",
-            }}
-          >
-            <option value="9">9 per page</option>
-            <option value="18">18 per page</option>
-            <option value="36">36 per page</option>
-          </select>
-        </div>
+        <div className="hidden sm:block w-36" />
       </div>
 
-      {/* ─── View Details Modal Inspector (32px Padding Clean Light Mode Card) ── */}
+      {/* ─── View Details Modal Inspector ───────────────────────────────────── */}
       {selectedDetailsProject && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto">
           <div
@@ -878,20 +1196,34 @@ export default function AdminProjectsPage() {
               }}
             >
               <div>
-                <span
-                  style={{
-                    color: "#2563eb",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    fontFamily: "monospace",
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                    display: "block",
-                    marginBottom: "4px",
-                  }}
-                >
-                  {selectedDetailsProject.category}
-                </span>
+                <div className="flex items-center gap-2 mb-1">
+                  <span
+                    style={{
+                      color: "#2563eb",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      fontFamily: "monospace",
+                      letterSpacing: "0.05em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {selectedDetailsProject.category}
+                  </span>
+
+                  {/* Hidden / Visible Badge */}
+                  {selectedDetailsProject.isHidden ? (
+                    <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-300">
+                      <EyeOff size={10} />
+                      Hidden
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300">
+                      <Eye size={10} />
+                      Visible
+                    </span>
+                  )}
+                </div>
+
                 <h3
                   className="font-display"
                   style={{
@@ -922,7 +1254,7 @@ export default function AdminProjectsPage() {
               </button>
             </div>
 
-            {/* Description Paragraph */}
+            {/* Description */}
             <p
               style={{
                 fontSize: "13px",
@@ -970,37 +1302,68 @@ export default function AdminProjectsPage() {
 
             {/* Action Buttons */}
             <div
-              className="flex items-center justify-between"
+              className="flex items-center justify-between gap-3"
               style={{
                 paddingTop: "20px",
                 borderTop: "1px solid #f3f4f6",
               }}
             >
-              {selectedDetailsProject.liveUrl ? (
-                <a
-                  href={selectedDetailsProject.liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              <div className="flex items-center gap-2">
+                {selectedDetailsProject.liveUrl && (
+                  <a
+                    href={selectedDetailsProject.liveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      backgroundColor: "#2563eb",
+                      color: "#ffffff",
+                      borderRadius: "8px",
+                      padding: "8px 16px",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      textDecoration: "none",
+                    }}
+                    className="hover:bg-[#1d4ed8]"
+                  >
+                    <span>Live Showcase</span>
+                    <ExternalLink size={13} />
+                  </a>
+                )}
+
+                {/* Quick Toggle Inside Details Modal */}
+                <button
+                  onClick={() => handleToggleVisibility(selectedDetailsProject)}
                   style={{
-                    backgroundColor: "#2563eb",
-                    color: "#ffffff",
+                    backgroundColor: selectedDetailsProject.isHidden ? "#fef3c7" : "#f1f5f9",
+                    border: selectedDetailsProject.isHidden ? "1px solid #fde68a" : "1px solid #e2e8f0",
+                    color: selectedDetailsProject.isHidden ? "#92400e" : "#475569",
                     borderRadius: "8px",
-                    padding: "10px 20px",
+                    padding: "8px 14px",
                     fontSize: "12px",
                     fontWeight: 700,
+                    cursor: "pointer",
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: "8px",
-                    textDecoration: "none",
+                    gap: "6px",
                   }}
-                  className="hover:bg-[#1d4ed8]"
+                  className="hover:opacity-90"
                 >
-                  <span>Open Live Showcase</span>
-                  <ExternalLink size={14} />
-                </a>
-              ) : (
-                <span style={{ fontSize: "12px", color: "#9ca3af" }}>No live link</span>
-              )}
+                  {selectedDetailsProject.isHidden ? (
+                    <>
+                      <Eye size={13} className="text-amber-700" />
+                      <span>Unhide Project</span>
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff size={13} className="text-slate-600" />
+                      <span>Hide Project</span>
+                    </>
+                  )}
+                </button>
+              </div>
 
               <button
                 onClick={() => {
@@ -1013,7 +1376,7 @@ export default function AdminProjectsPage() {
                   border: "1px solid #e5e7eb",
                   color: "#374151",
                   borderRadius: "8px",
-                  padding: "10px 18px",
+                  padding: "8px 16px",
                   fontSize: "12px",
                   fontWeight: 600,
                   cursor: "pointer",
@@ -1027,7 +1390,7 @@ export default function AdminProjectsPage() {
         </div>
       )}
 
-      {/* ─── Deploy / Edit Project Modal (Wider 960px 2-Column Responsive Layout) ─ */}
+      {/* ─── Deploy / Edit Project Modal ─────────────────────────────────────── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/50 backdrop-blur-xs overflow-y-auto">
           <div
@@ -1067,7 +1430,7 @@ export default function AdminProjectsPage() {
                   {editingId ? "Edit Project Showcase" : "Deploy New Project Showcase"}
                 </h2>
                 <p style={{ fontSize: "12px", color: "#6b7280", margin: "4px 0 0 0" }}>
-                  Manage showcase card content, custom images, and technical specifications.
+                  Manage showcase card content, public visibility, custom images, and technical specifications.
                 </p>
               </div>
               <button
@@ -1088,6 +1451,77 @@ export default function AdminProjectsPage() {
 
             {/* Modal Form Container with Scrollable Body */}
             <form onSubmit={handleSaveProject} className="flex-1 overflow-y-auto pr-1" style={{ scrollbarWidth: "thin" }}>
+              
+              {/* ─── PUBLIC VISIBILITY SELECTOR ─── */}
+              <div
+                style={{
+                  backgroundColor: formData.isHidden ? "#fffbeb" : "#f0fdf4",
+                  border: formData.isHidden ? "1px solid #fde68a" : "1px solid #bbf7d0",
+                  borderRadius: "12px",
+                  padding: "14px 18px",
+                  marginBottom: "20px",
+                }}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span style={{ display: "block", fontSize: "13px", fontWeight: 700, color: formData.isHidden ? "#92400e" : "#166534" }}>
+                      Public Website Visibility
+                    </span>
+                    <p style={{ fontSize: "11px", color: formData.isHidden ? "#b45309" : "#15803d", margin: "2px 0 0 0" }}>
+                      {formData.isHidden
+                        ? "⚠️ Project is currently HIDDEN. It will NOT appear anywhere on the live website (Home, Work, Sitemap)."
+                        : "✓ Project is VISIBLE to all website visitors on public portfolio showcases."}
+                    </p>
+                  </div>
+
+                  {/* Toggle Pills */}
+                  <div className="flex items-center gap-2 bg-white p-1 rounded-lg border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, isHidden: false })}
+                      style={{
+                        backgroundColor: !formData.isHidden ? "#22c55e" : "transparent",
+                        color: !formData.isHidden ? "#ffffff" : "#64748b",
+                        borderRadius: "6px",
+                        padding: "6px 12px",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        border: "none",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      <Eye size={13} />
+                      <span>Visible</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, isHidden: true })}
+                      style={{
+                        backgroundColor: formData.isHidden ? "#f59e0b" : "transparent",
+                        color: formData.isHidden ? "#ffffff" : "#64748b",
+                        borderRadius: "6px",
+                        padding: "6px 12px",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        border: "none",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      <EyeOff size={13} />
+                      <span>Hidden</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* ─── LEFT COLUMN: Project Meta & Descriptions ─── */}

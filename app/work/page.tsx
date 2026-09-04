@@ -18,7 +18,8 @@ export default function WorkPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.projects && Array.isArray(data.projects) && data.projects.length > 0) {
-          setProjectList(data.projects);
+          const visible = data.projects.filter((p: Project) => !p.isHidden);
+          setProjectList(visible);
         }
       })
       .catch((err) => {

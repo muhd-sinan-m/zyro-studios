@@ -21,8 +21,9 @@ export function FeaturedWork() {
       .then((res) => res.json())
       .then((data) => {
         if (data.projects && Array.isArray(data.projects) && data.projects.length > 0) {
-          const featuredOnly = data.projects.filter((p: Project) => p.featured);
-          setProjectList(featuredOnly.length > 0 ? featuredOnly : data.projects);
+          const visible = data.projects.filter((p: Project) => !p.isHidden);
+          const featuredOnly = visible.filter((p: Project) => p.featured);
+          setProjectList(featuredOnly.length > 0 ? featuredOnly : visible);
         }
       })
       .catch((err) => {

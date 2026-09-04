@@ -35,6 +35,7 @@ export const projects: Project[] = [
     liveUrl: "https://pyq.marian.cloud",
     year: 2026,
     featured: true,
+    isHidden: false,
     status: "live",
     problemStatement:
       "Students struggle to find organized, accessible previous year question papers. Resources are scattered across different platforms, often poorly formatted and hard to navigate on mobile devices.",
@@ -47,7 +48,7 @@ export const projects: Project[] = [
 ];
 
 export const getFeaturedProjects = (): Project[] =>
-  projects.filter((p) => p.featured);
+  projects.filter((p) => p.featured && !p.isHidden);
 
 export const getProjectBySlug = (slug: string): Project | undefined =>
-  projects.find((p) => p.slug === slug);
+  projects.find((p) => p.slug === slug && !p.isHidden);

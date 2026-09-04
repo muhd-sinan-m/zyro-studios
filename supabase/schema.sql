@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS public.projects (
   live_url TEXT,
   year INTEGER NOT NULL DEFAULT 2026,
   featured BOOLEAN NOT NULL DEFAULT false,
+  is_hidden BOOLEAN NOT NULL DEFAULT false,
   status TEXT NOT NULL DEFAULT 'live' CHECK (status IN ('live', 'in-development', 'archived')),
   problem_statement TEXT,
   solution TEXT,
@@ -56,6 +57,7 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
 
 -- 5. Indexes for High-Performance Queries
 CREATE INDEX IF NOT EXISTS idx_projects_featured ON public.projects(featured);
+CREATE INDEX IF NOT EXISTS idx_projects_is_hidden ON public.projects(is_hidden);
 CREATE INDEX IF NOT EXISTS idx_projects_status ON public.projects(status);
 CREATE INDEX IF NOT EXISTS idx_projects_slug ON public.projects(slug);
 CREATE INDEX IF NOT EXISTS idx_inquiries_status ON public.inquiries(status);
