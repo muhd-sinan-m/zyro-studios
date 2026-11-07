@@ -1,19 +1,14 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
-import { supabase } from "@/lib/supabase/client";
+import React, { useState } from "react";
+import { useAdminData } from "@/components/admin/AdminDataProvider";
 import {
   Inbox,
   Search,
   Mail,
   Clock,
-  CheckCircle2,
-  AlertCircle,
   Building,
-  DollarSign,
-  Calendar,
   X,
-  ExternalLink,
   RefreshCw,
   MessageSquare,
   FileText,
@@ -23,102 +18,43 @@ import {
 } from "lucide-react";
 
 export default function AdminInquiriesPage() {
-  const [inquiries, setInquiries] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    inquiries,
+    setInquiries,
+    loading,
+    isRefreshing,
+    refetchInquiries,
+    setStats,
+  } = useAdminData();
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedInquiry, setSelectedInquiry] = useState<any | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const lastEtag = useRef<string | null>(null);
-
-  const fetchInquiries = async (silent = false) => {
-    if (!silent) setLoading(true);
-    try {
-      const headers: Record<string, string> = {};
-      if (silent && lastEtag.current) {
-        headers["If-None-Match"] = lastEtag.current;
-      }
-
-      const res = await fetch("/api/inquiries", { headers });
-
-      // 304 Not Modified: cache hit, zero re-renders, zero database queries
-      if (res.status === 304) {
-        return;
-      }
-
-      if (res.ok) {
-        const etag = res.headers.get("etag");
-        if (etag) lastEtag.current = etag;
-
-        const data = await res.json();
-        setInquiries(data.inquiries || []);
-      }
-    } catch (e) {
-      console.error("Failed to fetch inquiries:", e);
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchInquiries();
-
-    // Supabase Realtime WebSocket listener for immediate instant push without reload
-    let channel: any = null;
-    if (supabase) {
-      channel = supabase
-        .channel("inquiries-live-stream")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "inquiries" },
-          (payload: any) => {
-            if (payload.eventType === "INSERT" && payload.new) {
-              setInquiries((prev) => [payload.new, ...prev.filter((i) => i.id !== payload.new.id)]);
-            } else if (payload.eventType === "UPDATE" && payload.new) {
-              setInquiries((prev) =>
-                prev.map((i) => (i.id === payload.new.id ? { ...i, ...payload.new } : i))
-              );
-            } else if (payload.eventType === "DELETE" && payload.old) {
-              setInquiries((prev) => prev.filter((i) => i.id !== payload.old.id));
-            }
-          }
-        )
-        .subscribe();
-    }
-
-    // Lightweight 304 ETag-aware auto-fetch every 5s (0 database queries if no new data)
-    const interval = setInterval(() => {
-      fetchInquiries(true);
-    }, 5000);
-
-    return () => {
-      clearInterval(interval);
-      if (channel && supabase) {
-        supabase.removeChannel(channel);
-      }
-    };
-  }, []);
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     setUpdatingStatus(true);
+    // Optimistic UI update
+    setInquiries((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, status: newStatus } : i))
+    );
+    if (selectedInquiry && selectedInquiry.id === id) {
+      setSelectedInquiry((prev: any) => ({ ...prev, status: newStatus }));
+    }
+
     try {
       const res = await fetch("/api/inquiries", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, status: newStatus }),
       });
-
-      if (res.ok) {
-        setInquiries((prev) =>
-          prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
-        );
-        if (selectedInquiry && selectedInquiry.id === id) {
-          setSelectedInquiry({ ...selectedInquiry, status: newStatus });
-        }
+      if (!res.ok) {
+        refetchInquiries(true);
       }
-    } catch {
-      alert("Failed to update status.");
+    } catch (e) {
+      console.error(e);
+      refetchInquiries(true);
     } finally {
       setUpdatingStatus(false);
     }
@@ -196,7 +132,7 @@ export default function AdminInquiriesPage() {
         </div>
 
         <button
-          onClick={() => fetchInquiries()}
+          onClick={() => refetchInquiries(false)}
           className="flex items-center gap-2 transition-all cursor-pointer shadow-2xs"
           style={{
             backgroundColor: "#ffffff",

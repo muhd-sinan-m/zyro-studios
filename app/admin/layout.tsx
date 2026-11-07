@@ -2,6 +2,7 @@ import React from "react";
 import { getAdminSession } from "@/lib/auth/admin";
 import AdminNavbar from "@/components/admin/AdminNavbar";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import { AdminDataProvider } from "@/components/admin/AdminDataProvider";
 
 export const metadata = {
   title: "Admin Command Center | Zyro Studios",
@@ -22,7 +23,7 @@ export default async function AdminLayout({
       style={{ backgroundColor: "#f8fafc", color: "#0f172a" }}
     >
       {session ? (
-        <>
+        <AdminDataProvider>
           <AdminNavbar
             userName={session.name || "Zyro Lead Admin"}
             userRole={session.role || "superadmin"}
@@ -40,7 +41,7 @@ export default async function AdminLayout({
               <div className="max-w-6xl w-full">{children}</div>
             </main>
           </div>
-        </>
+        </AdminDataProvider>
       ) : (
         // Not logged in — render children (e.g. login page)
         <div

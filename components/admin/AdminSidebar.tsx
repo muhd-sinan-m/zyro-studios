@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAdminData } from "./AdminDataProvider";
 import {
   LayoutGrid,
   FolderKanban,
@@ -39,6 +40,7 @@ export default function AdminSidebar({
   liveSiteUrl = "/",
 }: AdminSidebarProps) {
   const pathname = usePathname();
+  const { stats } = useAdminData();
 
   // Change Password Modal State
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -153,6 +155,21 @@ export default function AdminSidebar({
                 >
                   <Icon size={20} style={{ color: isActive ? "#2563eb" : "#9ca3af" }} />
                   <span>{label}</span>
+                  {href === "/admin/inquiries" && (stats?.unreadInquiries ?? 0) > 0 && (
+                    <span
+                      style={{
+                        marginLeft: "auto",
+                        backgroundColor: "#dbeafe",
+                        color: "#1d4ed8",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        padding: "2px 7px",
+                        borderRadius: "9999px",
+                      }}
+                    >
+                      {stats.unreadInquiries}
+                    </span>
+                  )}
                 </Link>
               );
             })}

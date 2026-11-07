@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase/client";
+import { useAdminData } from "@/components/admin/AdminDataProvider";
 import {
   Inbox,
   FolderGit2,
@@ -18,105 +18,18 @@ import {
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState<any>({
-    totalInquiries: 0,
-    unreadInquiries: 0,
-    totalProjects: 0,
-    activeProjects: 0,
-    isDbConnected: true,
-  });
+  const {
+    stats,
+    inquiries,
+    loading,
+    isRefreshing,
+    refetchAll,
+    setInquiries,
+    setStats,
+  } = useAdminData();
 
-  const [recentInquiries, setRecentInquiries] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const lastStatsEtag = useRef<string | null>(null);
-  const lastInquiriesEtag = useRef<string | null>(null);
-
-  const fetchData = async (silent = false) => {
-    if (!silent) setLoading(true);
-    try {
-      const statsHeaders: Record<string, string> = {};
-      const inqHeaders: Record<string, string> = {};
-
-      if (silent && lastStatsEtag.current) {
-        statsHeaders["If-None-Match"] = lastStatsEtag.current;
-      }
-      if (silent && lastInquiriesEtag.current) {
-        inqHeaders["If-None-Match"] = lastInquiriesEtag.current;
-      }
-
-      const [resStats, resInq] = await Promise.all([
-        fetch("/api/admin/stats", { headers: statsHeaders }),
-        fetch("/api/inquiries", { headers: inqHeaders }),
-      ]);
-
-      if (resStats.status === 200) {
-        const etag = resStats.headers.get("etag");
-        if (etag) lastStatsEtag.current = etag;
-        const statsData = await resStats.json();
-        setStats(statsData.stats || statsData);
-      }
-
-      if (resInq.status === 200) {
-        const etag = resInq.headers.get("etag");
-        if (etag) lastInquiriesEtag.current = etag;
-        const inqData = await resInq.json();
-        setRecentInquiries(inqData.inquiries || []);
-      }
-    } catch (e) {
-      console.error("Dashboard fetch error:", e);
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-
-    // Supabase Realtime WebSocket listener for immediate instant push without reload
-    let channel: any = null;
-    if (supabase) {
-      channel = supabase
-        .channel("admin-dashboard-stream")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "inquiries" },
-          (payload: any) => {
-            if (payload.eventType === "INSERT" && payload.new) {
-              setRecentInquiries((prev) => [payload.new, ...prev.filter((i) => i.id !== payload.new.id)]);
-              setStats((prev: any) => ({
-                ...prev,
-                totalInquiries: (prev.totalInquiries || 0) + 1,
-                unreadInquiries: (prev.unreadInquiries || 0) + 1,
-              }));
-            } else if (payload.eventType === "UPDATE" && payload.new) {
-              setRecentInquiries((prev) =>
-                prev.map((i) => (i.id === payload.new.id ? { ...i, ...payload.new } : i))
-              );
-            } else if (payload.eventType === "DELETE" && payload.old) {
-              setRecentInquiries((prev) => prev.filter((i) => i.id !== payload.old.id));
-              setStats((prev: any) => ({
-                ...prev,
-                totalInquiries: Math.max(0, (prev.totalInquiries || 1) - 1),
-              }));
-            }
-          }
-        )
-        .subscribe();
-    }
-
-    // Auto-refresh with 304 ETag check every 5s (0 database queries if unchanged)
-    const interval = setInterval(() => {
-      fetchData(true);
-    }, 5000);
-
-    return () => {
-      clearInterval(interval);
-      if (channel && supabase) {
-        supabase.removeChannel(channel);
-      }
-    };
-  }, []);
+  const recentInquiries = inquiries.slice(0, 5);
 
   const handleDeleteInquiry = async (id: string, name: string) => {
     if (
@@ -134,14 +47,19 @@ export default function AdminDashboardPage() {
       });
 
       if (res.ok) {
-        setRecentInquiries((prev) => prev.filter((item) => item.id !== id));
-        fetchData();
+        setInquiries((prev) => prev.filter((item) => item.id !== id));
+        setStats((prev) => ({
+          ...prev,
+          totalInquiries: Math.max(0, (prev.totalInquiries || 1) - 1),
+        }));
+        refetchAll(true);
       } else {
         const errData = await res.json();
         alert(errData.error || "Failed to delete inquiry.");
       }
-    } catch {
-      alert("Failed to connect to server.");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete inquiry.");
     } finally {
       setDeletingId(null);
     }
@@ -196,7 +114,7 @@ export default function AdminDashboardPage() {
         <div className="flex items-center gap-3">
           {/* Sync Button */}
           <button
-            onClick={() => fetchData()}
+            onClick={() => refetchAll(false)}
             className="flex items-center gap-2 transition-all cursor-pointer"
             style={{
               backgroundColor: "#ffffff",

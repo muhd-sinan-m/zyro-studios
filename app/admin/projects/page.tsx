@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
-import { supabase } from "@/lib/supabase/client";
+import React, { useState } from "react";
+import { useAdminData } from "@/components/admin/AdminDataProvider";
 import {
   Plus,
   FolderGit2,
@@ -41,8 +41,14 @@ const CATEGORY_OPTIONS = [
 ];
 
 export default function AdminProjectsPage() {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    projects,
+    setProjects,
+    loading,
+    isRefreshing,
+    refetchProjects,
+  } = useAdminData();
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -78,67 +84,6 @@ export default function AdminProjectsPage() {
   });
 
   const [pointInput, setPointInput] = useState("");
-  const lastEtag = useRef<string | null>(null);
-
-  const fetchProjects = async (silent: boolean | React.MouseEvent = false) => {
-    const isSilent = typeof silent === "boolean" ? silent : false;
-    if (!isSilent) setLoading(true);
-    try {
-      const headers: Record<string, string> = {};
-      if (isSilent && lastEtag.current) {
-        headers["If-None-Match"] = lastEtag.current;
-      }
-
-      const res = await fetch("/api/projects?all=true", { headers });
-
-      // 304 Not Modified: cache hit, zero re-render, zero DB query
-      if (res.status === 304) {
-        return;
-      }
-
-      if (res.ok) {
-        const etag = res.headers.get("etag");
-        if (etag) lastEtag.current = etag;
-        const data = await res.json();
-        setProjects(data.projects || []);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      if (!isSilent) setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProjects();
-
-    // Supabase Realtime WebSocket listener for immediate instant push without reload
-    let channel: any = null;
-    if (supabase) {
-      channel = supabase
-        .channel("admin-projects-stream")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "projects" },
-          () => {
-            fetchProjects(true);
-          }
-        )
-        .subscribe();
-    }
-
-    // Auto-refresh with 304 ETag check every 8s
-    const interval = setInterval(() => {
-      fetchProjects(true);
-    }, 8000);
-
-    return () => {
-      clearInterval(interval);
-      if (channel && supabase) {
-        supabase.removeChannel(channel);
-      }
-    };
-  }, []);
 
   const handleToggleVisibility = async (project: any, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -373,7 +318,7 @@ export default function AdminProjectsPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         setIsModalOpen(false);
-        fetchProjects();
+        refetchProjects(false);
       } else {
         alert(data.error || "Unable to save project. Please try again.");
       }
@@ -397,7 +342,7 @@ export default function AdminProjectsPage() {
         method: "DELETE",
       });
       if (res.ok) {
-        fetchProjects();
+        refetchProjects(false);
       }
     } catch {
       alert("Failed to delete project.");
@@ -473,7 +418,7 @@ export default function AdminProjectsPage() {
         <div className="flex items-center gap-3">
           {/* Refresh/Sync Button */}
           <button
-            onClick={() => fetchProjects(false)}
+            onClick={() => refetchProjects(false)}
             className="flex items-center justify-center transition-all cursor-pointer shadow-2xs hover:bg-slate-50"
             style={{
               backgroundColor: "#ffffff",
