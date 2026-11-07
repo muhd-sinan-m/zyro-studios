@@ -1,0 +1,33 @@
+name: Production SEO Audit & Analysis
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  seo-audit:
+    name: SEO Compliance & Meta Tag Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Run Production SEO Analysis
+        run: npm run seo:analyze
+
+      - name: Verify Next.js Build & SSG Generation
+        run: npm run build
+

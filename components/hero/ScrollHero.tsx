@@ -296,7 +296,7 @@ export function ScrollHero() {
         {/* Full-Screen Background Image for Mobile Viewport */}
         <img
           src="/img/mobile-hero.webp"
-          alt="Zyro Studios Background"
+          alt="Zyro Studios — Affordable Freelance Web Development and Digital Products"
           className="absolute inset-0 w-full h-full object-cover object-center z-0 opacity-95"
         />
 
@@ -319,10 +319,11 @@ export function ScrollHero() {
         <div className="absolute left-7 sm:left-12 top-[16%] sm:top-[18%] z-10 max-w-[280px] text-left pointer-events-none">
           <div className="flex flex-col items-start gap-1.5 sm:gap-2">
             <span className="text-xs font-mono font-bold tracking-widest text-[#38bdf8] uppercase">
-              01 // CUSTOM WEB APPS
+              01 {"//"} CUSTOM WEB APPS
             </span>
             <h1 className="font-display font-extrabold text-xl sm:text-2xl text-white tracking-tight leading-snug">
               Full-Stack Web Applications.
+              <span className="sr-only"> — Affordable Freelance Web Developer & Custom Web Apps</span>
             </h1>
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-xs">
               Custom SaaS platforms, client portals, and internal business workflow systems built to scale.
@@ -407,13 +408,20 @@ export function ScrollHero() {
             >
               <div className="flex items-center gap-2">
                 <span className="text-xs sm:text-sm font-mono font-bold tracking-widest text-[#38bdf8] uppercase">
-                  {leftStage.num} // {leftStage.tag}
+                  {leftStage.num} {"//"} {leftStage.tag}
                 </span>
               </div>
 
-              <h2 className="font-display font-extrabold text-xl sm:text-3xl lg:text-4xl text-white tracking-tight leading-tight">
-                {leftStage.title}
-              </h2>
+              {activeStage === 0 ? (
+                <h1 className="font-display font-extrabold text-xl sm:text-3xl lg:text-4xl text-white tracking-tight leading-tight">
+                  {leftStage.title}
+                  <span className="sr-only"> — Affordable Freelance Web Developer & Systems Engineering</span>
+                </h1>
+              ) : (
+                <h2 className="font-display font-extrabold text-xl sm:text-3xl lg:text-4xl text-white tracking-tight leading-tight">
+                  {leftStage.title}
+                </h2>
+              )}
 
               <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-xs">
                 {leftStage.desc}

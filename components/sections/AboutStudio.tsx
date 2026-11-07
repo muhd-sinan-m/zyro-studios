@@ -75,7 +75,7 @@ export function AboutStudio() {
             style={{ maxWidth: "680px", marginLeft: "auto", marginRight: "auto", marginBottom: "24px" }}
           >
             <p>
-              Zyro Studios is a development-focused digital studio engineered to ship bespoke web platforms, custom applications, and e-commerce infrastructure.
+              Zyro Studios is an independent engineering studio founded by senior freelance developers to ship bespoke web platforms, custom applications, and e-commerce infrastructure at accessible, affordable freelance rates.
             </p>
             <p>
               Every project is built from clean source code with direct developer access, transparent communication, and 100% intellectual property ownership. We don&apos;t use bloated templates or outsource work — everything is engineered in-house with modern frameworks.

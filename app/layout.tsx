@@ -1,130 +1,38 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import PublicLayout from "@/components/navigation/PublicLayout";
+import { constructMetadata, getRootSchemaGraph, SITE_CONFIG } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: {
-    default: "Zyro Studios | High-Performance Engineering & Digital Products",
-    template: "%s | Zyro Studios",
-  },
-  description:
-    "Zyro Studios designs, engineers, and deploys high-performance web applications, enterprise software, and scalable digital systems.",
-  keywords: [
-    "web development",
-    "systems engineering",
-    "Next.js",
-    "React",
-    "digital agency",
-    "educational platforms",
-    "custom web applications",
-    "full stack development",
-  ],
-  authors: [{ name: "Zyro Studios" }],
-  creator: "Zyro Studios",
-  publisher: "Zyro Studios",
-  metadataBase: new URL("https://zyrostudios.vercel.app"),
-  openGraph: {
-    type: "website",
-    locale: "en_IN",
-    url: "https://zyrostudios.vercel.app",
-    siteName: "Zyro Studios",
-    title: "Zyro Studios | High-Performance Engineering & Digital Products",
-    description:
-      "Zyro Studios designs, engineers, and deploys high-performance web applications, enterprise software, and scalable digital systems.",
-    images: [
-      {
-        url: "/logo/zyro-logo.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Zyro Studios — We Build. You Grow.",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Zyro Studios | High-Performance Engineering & Digital Products",
-    description:
-      "Zyro Studios designs, engineers, and deploys high-performance web applications, enterprise software, and scalable digital systems.",
-    images: ["/logo/zyro-logo.jpg"],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-  icons: {
-    icon: [
-      { url: "/favicon/favicon.ico" },
-      { url: "/favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    shortcut: "/favicon/favicon.ico",
-    apple: [
-      { url: "/favicon/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-    other: [
-      { rel: "android-chrome-192x192", url: "/favicon/android-chrome-192x192.png" },
-      { rel: "android-chrome-512x512", url: "/favicon/android-chrome-512x512.png" },
-    ],
-  },
-  verification: {
-    google: "6TkbjzfigeR4hnswayZI8sx7ThG2Qy2wLu-Vkl4OrmU",
-  },
+export const viewport: Viewport = {
+  themeColor: "#030712",
+  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
 };
 
-// JSON-LD structured data
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://zyrostudios.vercel.app/#organization",
-      name: "Zyro Studios",
-      url: "https://zyrostudios.vercel.app",
-      logo: {
-        "@type": "ImageObject",
-        url: "https://zyrostudios.vercel.app/logo/zyro-logo.jpg",
-      },
-      description:
-        "Zyro Studios is a development-focused creative studio building modern websites and digital products for businesses, organizations, and individuals.",
-      slogan: "We Build. You Grow.",
-      foundingDate: "2025",
-      areaServed: "Worldwide",
-      serviceType: [
-        "Web Development",
-        "E-Commerce Development",
-        "Educational Platform Development",
-        "Custom Web Applications",
-        "Landing Pages",
-        "Portfolio Websites",
-      ],
-    },
-    {
-      "@type": "WebSite",
-      "@id": "https://zyrostudios.vercel.app/#website",
-      url: "https://zyrostudios.vercel.app",
-      name: "Zyro Studios",
-      publisher: { "@id": "https://zyrostudios.vercel.app/#organization" },
-    },
-  ],
-};
+export const metadata: Metadata = constructMetadata();
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const rootSchema = getRootSchemaGraph();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="google-site-verification" content="6TkbjzfigeR4hnswayZI8sx7ThG2Qy2wLu-Vkl4OrmU" />
+        <meta name="google-site-verification" content={SITE_CONFIG.googleVerification} />
+        <meta name="rating" content="general" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+        <meta name="application-name" content={SITE_CONFIG.name} />
+        <meta name="apple-mobile-web-app-title" content={SITE_CONFIG.name} />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="geo.region" content="IN" />
+        <meta name="geo.placename" content="Global Freelance Engineering" />
         <link rel="icon" href="/favicon/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
@@ -132,12 +40,12 @@ export default function RootLayout({
         <link rel="manifest" href="/favicon/site.webmanifest" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(rootSchema) }}
         />
       </head>
       <body className="bg-bg text-zyro-white antialiased" suppressHydrationWarning>
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-BVLJCMCSCX"
+          src={`https://www.googletagmanager.com/gtag/js?id=${SITE_CONFIG.googleAnalyticsId}`}
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -146,7 +54,7 @@ export default function RootLayout({
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
 
-            gtag('config', 'G-BVLJCMCSCX');
+            gtag('config', '${SITE_CONFIG.googleAnalyticsId}');
           `}
         </Script>
         <PublicLayout>{children}</PublicLayout>

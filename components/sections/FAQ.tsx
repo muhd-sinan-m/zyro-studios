@@ -4,36 +4,9 @@ import { useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Plus, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FAQ_ITEMS } from "@/lib/seo";
 
-const faqs = [
-  {
-    question: "What types of digital platforms and websites do you build?",
-    answer:
-      "We engineer custom business websites, high-converting e-commerce stores, comprehensive educational platforms, portfolio sites, landing pages, and bespoke web applications with tailored internal workflows and admin dashboards.",
-  },
-  {
-    question: "Can you build directly from existing Figma / UI designs?",
-    answer:
-      "Yes. We translate Figma, Adobe XD, or Sketch designs into pixel-perfect, production-grade code with responsive fluid layouts and high-performance animations.",
-  },
-  {
-    question: "Do you provide infrastructure, hosting, and deployment?",
-    answer:
-      "Yes. We handle end-to-end setup across modern cloud platforms like Vercel, AWS, Supabase, and Cloudflare — including DNS configuration, edge CDN caching, and SSL certificates.",
-  },
-  {
-    question: "Do you offer post-launch maintenance and continuous support?",
-    answer:
-      "Yes. We provide ongoing support packages that cover performance monitoring, feature development, framework updates, and proactive optimizations as your user base expands.",
-  },
-  {
-    question: "How long does a typical project take from start to finish?",
-    answer:
-      "Timelines depend on scope and feature complexity: landing pages typically take 1–2 weeks, full business websites take 3–5 weeks, and comprehensive web platforms take 6–10 weeks with weekly milestone demos.",
-  },
-];
-
-function FAQItem({ item }: { item: typeof faqs[0]; index: number }) {
+function FAQItem({ item }: { item: typeof FAQ_ITEMS[0]; index: number }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -133,7 +106,7 @@ export function FAQ() {
           className="w-full flex flex-col"
           style={{ maxWidth: "860px", marginLeft: "auto", marginRight: "auto", gap: "16px" }}
         >
-          {faqs.map((faq, i) => (
+          {FAQ_ITEMS.map((faq, i) => (
             <FAQItem key={i} item={faq} index={i} />
           ))}
         </div>

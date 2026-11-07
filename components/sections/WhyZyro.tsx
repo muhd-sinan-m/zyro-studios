@@ -36,9 +36,9 @@ const pillars = [
   },
   {
     icon: HeartHandshake,
-    title: "Dedicated Studio Partnership",
+    title: "Affordable Freelance Rates",
     description:
-      "We act as your technical partner before, during, and long after deployment — offering proactive enhancements, monitoring, and scaling support.",
+      "Enterprise-grade engineering and senior developer execution without inflated agency fees. Direct collaboration with transparent, budget-friendly project pricing.",
   },
 ];
 

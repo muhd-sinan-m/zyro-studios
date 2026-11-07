@@ -1,13 +1,44 @@
 import type { MetadataRoute } from "next";
+import { SITE_CONFIG } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-      disallow: ["/api/", "/_next/"],
-    },
-    sitemap: "https://zyrostudios.vercel.app/sitemap.xml",
-    host: "https://zyrostudios.vercel.app",
+    rules: [
+      {
+        userAgent: "*",
+        allow: [
+          "/",
+          "/services",
+          "/work",
+          "/about",
+          "/process",
+          "/contact",
+          "/favicon/",
+          "/img/",
+          "/logo/",
+        ],
+        disallow: [
+          "/admin",
+          "/admin/*",
+          "/api/admin/*",
+          "/api/*",
+          "/_next/*",
+          "/scratch/*",
+        ],
+      },
+      {
+        userAgent: "Googlebot",
+        allow: "/",
+        disallow: [
+          "/admin",
+          "/admin/*",
+          "/api/admin/*",
+          "/api/*",
+          "/_next/*",
+        ],
+      },
+    ],
+    sitemap: `${SITE_CONFIG.url}/sitemap.xml`,
+    host: SITE_CONFIG.url,
   };
 }
