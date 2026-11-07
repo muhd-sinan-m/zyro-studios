@@ -151,14 +151,31 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Center Zone: Giant ZYRO STUDIOS Wordmark (4 cols) */}
-          <div className="lg:col-span-4 flex flex-col items-center justify-center text-center select-none py-4 lg:py-0 pointer-events-none">
-            <p className="font-display font-extrabold text-4xl sm:text-6xl lg:text-7xl tracking-tighter text-white/[0.08] leading-none uppercase">
-              ZYRO
-            </p>
-            <p className="font-display font-extrabold text-4xl sm:text-6xl lg:text-7xl tracking-tighter text-white/[0.08] leading-none uppercase mt-1">
-              STUDIOS
-            </p>
+          {/* Center Zone: Sitewide Navigation Links & Sitelinks (4 cols) */}
+          <div className="lg:col-span-4 flex flex-col items-center justify-center text-center py-4 lg:py-0">
+            <h4 className="font-mono text-xs uppercase tracking-widest text-slate-400 mb-3.5 font-semibold">
+              Explore
+            </h4>
+            <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2.5 text-xs sm:text-sm text-slate-400 max-w-sm" aria-label="Footer Navigation">
+              <Link href="/services" className="hover:text-[#38bdf8] transition-colors">
+                Services
+              </Link>
+              <Link href="/work" className="hover:text-[#38bdf8] transition-colors">
+                Selected Work
+              </Link>
+              <Link href="/work/pyq-portal" className="hover:text-[#38bdf8] transition-colors">
+                PyQ Portal
+              </Link>
+              <Link href="/process" className="hover:text-[#38bdf8] transition-colors">
+                Process
+              </Link>
+              <Link href="/about" className="hover:text-[#38bdf8] transition-colors">
+                About Studio
+              </Link>
+              <Link href="/contact" className="hover:text-[#38bdf8] transition-colors">
+                Start a Project
+              </Link>
+            </nav>
           </div>
 
           {/* Right Zone: Direct Communication (4 cols) */}

@@ -1,0 +1,36 @@
+# Zyro Studios
+> Affordable Freelance Web Developer & High-Performance Digital Products
+
+Zyro Studios (founded by senior freelance full-stack developer Sinan) designs, develops, and deploys custom web applications, high-converting e-commerce stores, academic portals, and modern business websites at accessible, affordable freelance prices.
+
+## Core Capabilities
+- Custom Next.js 15 & React Web Applications
+- E-Commerce Platforms (Stripe, inventory, fast cart checkout)
+- Educational & Academic Portals (Previous Year Question repositories, student portals)
+- High-Performance Landing Pages & Corporate Websites
+- Full Stack Systems Engineering (PostgreSQL, Supabase, Node.js, TypeScript, Tailwind CSS)
+- SEO Optimization & 100/100 Core Web Vitals Performance
+
+## Pricing & Packages
+- Budget Starter Website & Portfolio: Starting at $99 USD
+- Custom Full-Stack Web Application: Starting at $299 USD
+- E-Commerce Store: Starting at $349 USD
+- Academic & Educational Platforms: Starting at $199 USD
+
+## Key Links
+- Homepage: https://zyrostudios.vercel.app/
+- Services: https://zyrostudios.vercel.app/services
+- Work & Case Studies: https://zyrostudios.vercel.app/work
+- PyQ Portal Case Study: https://zyrostudios.vercel.app/work/pyq-portal
+- Engineering Process: https://zyrostudios.vercel.app/process
+- About Studio: https://zyrostudios.vercel.app/about
+- Contact & Free Quote: https://zyrostudios.vercel.app/contact
+- Sitemap: https://zyrostudios.vercel.app/sitemap.xml
+- Robots: https://zyrostudios.vercel.app/robots.txt
+
+## Contact Information
+- Email: build.zyrostudios@gmail.com
+- WhatsApp: +91 7994312026
+- LinkedIn: https://www.linkedin.com/in/muhammed-sinan-m/
+- Instagram: https://www.instagram.com/zyro_studios_/
+- GitHub: https://github.com/muhd-sinan-m

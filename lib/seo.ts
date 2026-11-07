@@ -28,6 +28,13 @@ export const SITE_CONFIG = {
     "Germany",
     "Singapore",
   ],
+  email: "build.zyrostudios@gmail.com",
+  telephone: "+917994312026",
+  sameAs: [
+    "https://www.linkedin.com/in/muhammed-sinan-m/",
+    "https://www.instagram.com/zyro_studios_/",
+    "https://github.com/muhd-sinan-m",
+  ],
   googleVerification: "6TkbjzfigeR4hnswayZI8sx7ThG2Qy2wLu-Vkl4OrmU",
   googleAnalyticsId: "G-BVLJCMCSCX",
 };
@@ -279,6 +286,9 @@ export function getRootSchemaGraph() {
         priceRange: SITE_CONFIG.priceRange,
         currenciesAccepted: SITE_CONFIG.currenciesAccepted,
         paymentAccepted: SITE_CONFIG.paymentAccepted,
+        email: SITE_CONFIG.email,
+        telephone: SITE_CONFIG.telephone,
+        sameAs: SITE_CONFIG.sameAs,
         areaServed: SITE_CONFIG.areaServed.map((area) => ({
           "@type": "Place",
           name: area,
@@ -290,6 +300,7 @@ export function getRootSchemaGraph() {
           name: SITE_CONFIG.founderName,
           jobTitle: SITE_CONFIG.founderRole,
           url: SITE_CONFIG.url,
+          sameAs: SITE_CONFIG.sameAs,
           knowsAbout: [
             "Freelance Web Development",
             "Next.js App Router",

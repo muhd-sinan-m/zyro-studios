@@ -79,6 +79,7 @@ if (seoLibExists) {
   check("Person Schema.org (Freelancer) included", seoContent.includes('"@type": "Person"'));
   check("BreadcrumbList Schema.org generator exported", seoContent.includes("getBreadcrumbSchema"));
   check("Project / SoftwareApplication Schema.org generator exported", seoContent.includes("getProjectCaseStudySchema"));
+  check("Social profiles (sameAs) configured in Schema", seoContent.includes("sameAs:"));
 }
 
 // 2. Robots & Sitemap
@@ -108,13 +109,15 @@ if (fs.existsSync(sitemapPath)) {
   check("Sitemap dynamically indexes project case studies", sitemapContent.includes("/work/${slug}") || sitemapContent.includes("/work/"));
 }
 
-// 3. Web App Manifest
-heading("3. Web App Manifest (PWA & Search Display)");
+// 3. Web App Manifest & AI Engine Discovery
+heading("3. Web App Manifest & AI Engine Discovery");
 const manifestPathFavicon = path.join(rootDir, "public", "favicon", "site.webmanifest");
 const manifestPathRoot = path.join(rootDir, "public", "site.webmanifest");
+const llmsPath = path.join(rootDir, "public", "llms.txt");
 
 check("public/favicon/site.webmanifest exists", fs.existsSync(manifestPathFavicon));
 check("public/site.webmanifest exists", fs.existsSync(manifestPathRoot));
+check("public/llms.txt exists (Perplexity / ChatGPT Search discovery)", fs.existsSync(llmsPath));
 
 if (fs.existsSync(manifestPathFavicon)) {
   try {
@@ -169,6 +172,16 @@ const faqComponentPath = path.join(rootDir, "components", "sections", "FAQ.tsx")
 if (fs.existsSync(faqComponentPath)) {
   const faqContent = fs.readFileSync(faqComponentPath, "utf-8");
   check("FAQ component synchronizes directly with FAQ_ITEMS from SEO package", faqContent.includes("FAQ_ITEMS"));
+}
+
+const footerComponentPath = path.join(rootDir, "components", "footer", "Footer.tsx");
+if (fs.existsSync(footerComponentPath)) {
+  const footerContent = fs.readFileSync(footerComponentPath, "utf-8");
+  check("Footer contains sitewide internal links for crawler PageRank flow", 
+    footerContent.includes("/services") && 
+    footerContent.includes("/work") && 
+    footerContent.includes("/contact")
+  );
 }
 
 // Summary Score
