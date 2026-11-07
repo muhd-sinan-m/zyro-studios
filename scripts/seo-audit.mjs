@@ -65,7 +65,7 @@ check("lib/seo.ts exists", seoLibExists);
 if (seoLibExists) {
   const seoContent = fs.readFileSync(seoLibPath, "utf-8");
   check("SITE_CONFIG defined", seoContent.includes("export const SITE_CONFIG"));
-  check("Canonical base URL is HTTPS", seoContent.includes('"https://zyrostudios.vercel.app"'));
+  check("Canonical base URL is HTTPS", seoContent.includes('"https://zyro-studios.vercel.app"'));
   check("Price range configured for budget ranking ('$')", seoContent.includes('priceRange: "$"'));
   check("OpenGraph image specified", seoContent.includes("ogImage:"));
   check("Google Search Console verification token configured", seoContent.includes("googleVerification:"));

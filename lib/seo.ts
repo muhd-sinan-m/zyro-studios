@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://zyro-studios.vercel.app").replace(/\/+$/, "");
+
 export const SITE_CONFIG = {
   name: "Zyro Studios",
   legalName: "Zyro Studios Freelance Web Engineering",
   brandTitle: "Zyro Studios | Affordable Freelance Web Developer & Custom Web Apps",
   shortTitle: "Zyro Studios — Freelance Web Developer",
-  url: "https://zyrostudios.vercel.app",
-  domain: "zyrostudios.vercel.app",
-  ogImage: "https://zyrostudios.vercel.app/logo/zyro-logo.jpg",
-  logo: "https://zyrostudios.vercel.app/logo/zyro-logo.jpg",
+  url: siteUrl,
+  domain: siteUrl.replace(/^https?:\/\//, ""),
+  ogImage: `${siteUrl}/logo/zyro-logo.jpg`,
+  logo: `${siteUrl}/logo/zyro-logo.jpg`,
   founderName: "Sinan",
   founderRole: "Senior Freelance Full-Stack Developer & Systems Architect",
   tagline: "We Build. You Grow. High-performance custom web development at affordable freelance rates.",

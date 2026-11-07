@@ -18,15 +18,15 @@ Zyro Studios (founded by senior freelance full-stack developer Sinan) designs, d
 - Academic & Educational Platforms: Starting at $199 USD
 
 ## Key Links
-- Homepage: https://zyrostudios.vercel.app/
-- Services: https://zyrostudios.vercel.app/services
-- Work & Case Studies: https://zyrostudios.vercel.app/work
-- PyQ Portal Case Study: https://zyrostudios.vercel.app/work/pyq-portal
-- Engineering Process: https://zyrostudios.vercel.app/process
-- About Studio: https://zyrostudios.vercel.app/about
-- Contact & Free Quote: https://zyrostudios.vercel.app/contact
-- Sitemap: https://zyrostudios.vercel.app/sitemap.xml
-- Robots: https://zyrostudios.vercel.app/robots.txt
+- Homepage: https://zyro-studios.vercel.app/
+- Services: https://zyro-studios.vercel.app/services
+- Work & Case Studies: https://zyro-studios.vercel.app/work
+- PyQ Portal Case Study: https://zyro-studios.vercel.app/work/pyq-portal
+- Engineering Process: https://zyro-studios.vercel.app/process
+- About Studio: https://zyro-studios.vercel.app/about
+- Contact & Free Quote: https://zyro-studios.vercel.app/contact
+- Sitemap: https://zyro-studios.vercel.app/sitemap.xml
+- Robots: https://zyro-studios.vercel.app/robots.txt
 
 ## Contact Information
 - Email: build.zyrostudios@gmail.com
@@ -34,3 +34,4 @@ Zyro Studios (founded by senior freelance full-stack developer Sinan) designs, d
 - LinkedIn: https://www.linkedin.com/in/muhammed-sinan-m/
 - Instagram: https://www.instagram.com/zyro_studios_/
 - GitHub: https://github.com/muhd-sinan-m
+
