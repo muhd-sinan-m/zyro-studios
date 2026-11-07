@@ -204,8 +204,19 @@ export function constructMetadata({
       ],
     },
     manifest: "/favicon/site.webmanifest",
+    applicationName: SITE_CONFIG.name,
+    appleWebApp: {
+      capable: true,
+      title: SITE_CONFIG.name,
+      statusBarStyle: "black-translucent",
+    },
     verification: {
       google: SITE_CONFIG.googleVerification,
+    },
+    other: {
+      rating: "general",
+      "geo.region": "IN",
+      "geo.placename": "Global Freelance Engineering",
     },
     category: "technology",
     classification: "Freelance Web Development & Software Engineering Services",
