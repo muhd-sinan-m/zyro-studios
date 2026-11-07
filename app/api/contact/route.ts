@@ -60,22 +60,28 @@ export async function POST(req: Request) {
 
     const data = result.data;
 
-    // Log to console (replace with Supabase when ready)
-    console.log("━━━ New Project Inquiry ━━━");
-    console.log(`Name: ${data.name}`);
-    console.log(`Email: ${data.email}`);
-    console.log(`Phone: ${data.phone ?? "—"}`);
-    console.log(`Company: ${data.company ?? "—"}`);
-    console.log(`Project Type: ${data.projectType}`);
-    console.log(`Budget: ${data.budget ?? "—"}`);
-    console.log(`Timeline: ${data.timeline ?? "—"}`);
-    console.log(`Description:\n${data.description}`);
-    console.log(`Timestamp: ${new Date().toISOString()}`);
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
-    // TODO: Replace with Supabase insert when credentials are available:
-    // const supabase = createSupabaseServerClient();
-    // await supabase.from("project_inquiries").insert({ ...data, status: "new" });
+    // Secure database storage with parameterized query; never log raw PII to server stdout
+    try {
+      const { query } = await import("@/lib/db");
+      await query(
+        `
+        INSERT INTO public.inquiries (project_type, timeline, name, email, phone, company, details, status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, 'unread')
+        `,
+        [
+          data.projectType,
+          data.timeline || "Flexible",
+          data.name,
+          data.email,
+          data.phone || "",
+          data.company || "",
+          data.description + (data.budget ? ` [Budget: ${data.budget}]` : ""),
+        ]
+      );
+    } catch (dbErr) {
+      // In case database connection is unreachable, log masked error without exposing user PII
+      console.error("Inquiry database insert error:", (dbErr as Error).message);
+    }
 
     return NextResponse.json(
       { success: true, message: "Your inquiry has been received." },

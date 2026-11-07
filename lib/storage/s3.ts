@@ -67,15 +67,22 @@ export async function deleteProjectAsset(
 
     if (!key) return false;
 
+    // Strict path normalization to prevent directory traversal
+    const normalizedKey = key.replace(/\\/g, "/").replace(/\/+/g, "/");
+    if (normalizedKey.includes("..") || !normalizedKey.startsWith("projects/")) {
+      console.warn(`[SECURITY WARNING] Blocked suspicious key deletion attempt: "${key}"`);
+      return false;
+    }
+
     await s3.send(
       new DeleteObjectCommand({
         Bucket: bucket,
-        Key: key,
+        Key: normalizedKey,
       })
     );
     return true;
   } catch (err) {
-    console.error("Error deleting old asset from storage:", err);
+    console.error("Error deleting old asset from storage:", (err as Error).message);
     return false;
   }
 }

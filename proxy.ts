@@ -2,9 +2,20 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.ADMIN_JWT_SECRET || ""
-);
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.ADMIN_JWT_SECRET;
+  if (!secret || secret.trim().length < 32) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "[SECURITY CRITICAL] ADMIN_JWT_SECRET must be configured and at least 32 characters."
+      );
+    }
+    return new TextEncoder().encode(
+      secret || "zyro_studios_development_jwt_secret_min_32_characters_long_key"
+    );
+  }
+  return new TextEncoder().encode(secret);
+}
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -23,7 +34,8 @@ export async function proxy(req: NextRequest) {
     }
 
     try {
-      await jwtVerify(token, JWT_SECRET, { algorithms: ["HS256"] });
+      const secret = getJwtSecret();
+      await jwtVerify(token, secret, { algorithms: ["HS256"] });
       return NextResponse.next();
     } catch {
       const loginUrl = new URL("/admin/login", req.url);

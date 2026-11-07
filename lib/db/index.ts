@@ -69,7 +69,19 @@ export async function batchInsert<T extends Record<string, any>>(
 ): Promise<number> {
   if (!rows || rows.length === 0) return 0;
 
+  // Strict table identifier validation to eliminate SQL injection risks
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/.test(table)) {
+    throw new Error(`[SECURITY] Invalid table name supplied to batchInsert: "${table}"`);
+  }
+
   const columns = Object.keys(rows[0]);
+  columns.forEach((col) => {
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(col)) {
+      throw new Error(`[SECURITY] Invalid column identifier supplied to batchInsert: "${col}"`);
+    }
+  });
+
+  const safeColumns = columns.map((col) => `"${col}"`);
   const values: any[] = [];
   const valueClauses: string[] = [];
 
@@ -82,7 +94,7 @@ export async function batchInsert<T extends Record<string, any>>(
     valueClauses.push(`(${rowParams.join(", ")})`);
   });
 
-  const sql = `INSERT INTO ${table} (${columns.join(", ")}) VALUES ${valueClauses.join(", ")}`;
+  const sql = `INSERT INTO ${table} (${safeColumns.join(", ")}) VALUES ${valueClauses.join(", ")}`;
   const res = await pool.query(sql, values);
   return res.rowCount || 0;
 }

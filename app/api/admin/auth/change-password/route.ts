@@ -27,23 +27,27 @@ export async function POST(req: NextRequest) {
 
     const envAdminPassword = process.env.ADMIN_PASSWORD || "";
     let isCurrentValid = false;
+    let userFoundInDb = false;
 
-    // Check env password using constant-time comparison
-    if (envAdminPassword && (await verifyPassword(currentPassword, envAdminPassword))) {
-      isCurrentValid = true;
-    } else {
-      // Check admin_users DB table
-      try {
-        const rows = await query(
-          `SELECT * FROM public.admin_users WHERE email = $1 LIMIT 1`,
-          [session.email]
-        );
-        if (rows.length > 0 && (await verifyPassword(currentPassword, rows[0].password_hash))) {
+    // Check database admin_users table first (authoritative)
+    try {
+      const rows = await query(
+        `SELECT * FROM public.admin_users WHERE email = $1 LIMIT 1`,
+        [session.email]
+      );
+      if (rows.length > 0) {
+        userFoundInDb = true;
+        if (await verifyPassword(currentPassword, rows[0].password_hash)) {
           isCurrentValid = true;
         }
-      } catch (err) {
-        console.error("DB password check error:", err);
       }
+    } catch (err) {
+      console.error("DB password check error:", err);
+    }
+
+    // Only allow env password fallback if user does not exist in DB
+    if (!userFoundInDb && envAdminPassword && (await verifyPassword(currentPassword, envAdminPassword))) {
+      isCurrentValid = true;
     }
 
     if (!isCurrentValid) {

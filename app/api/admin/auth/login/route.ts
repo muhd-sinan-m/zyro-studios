@@ -37,40 +37,60 @@ export async function POST(req: NextRequest) {
 
     let isValid = false;
     let userPayload = {
-      email: DEFAULT_ADMIN.email,
+      email: "",
       name: DEFAULT_ADMIN.name,
       role: DEFAULT_ADMIN.role,
     };
 
+    const requestedEmail = email.trim().toLowerCase();
     const envAdminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
     const envAdminPassword = process.env.ADMIN_PASSWORD || "";
 
-    if (
-      envAdminEmail &&
-      envAdminPassword &&
-      email.trim().toLowerCase() === envAdminEmail &&
-      (await verifyPassword(password, envAdminPassword))
-    ) {
-      isValid = true;
-      userPayload.email = envAdminEmail;
-    } else {
-      // Check database admin_users table
-      try {
-        const { query: dbQuery } = await import("@/lib/db");
-        const rows = await dbQuery(
-          `SELECT * FROM public.admin_users WHERE email = $1 LIMIT 1`,
-          [email.trim().toLowerCase()]
-        );
-        if (rows.length > 0 && (await verifyPassword(password, rows[0].password_hash))) {
+    // 1. Database admin check takes absolute precedence to prevent zombie credential bypass
+    let userFoundInDb = false;
+    let dbHasAnyUsers = false;
+
+    try {
+      const { query: dbQuery } = await import("@/lib/db");
+      const rows = await dbQuery(
+        `SELECT * FROM public.admin_users WHERE email = $1 LIMIT 1`,
+        [requestedEmail]
+      );
+
+      if (rows.length > 0) {
+        userFoundInDb = true;
+        // Verify exclusively against database password hash
+        if (await verifyPassword(password, rows[0].password_hash)) {
           isValid = true;
           userPayload = {
             email: rows[0].email,
-            name: rows[0].name,
-            role: rows[0].role,
+            name: rows[0].name || DEFAULT_ADMIN.name,
+            role: rows[0].role || DEFAULT_ADMIN.role,
           };
         }
-      } catch (err) {
-        console.error("DB admin auth check error:", err);
+      } else {
+        // Check if there are any other admin users in DB
+        const countRes = await dbQuery(`SELECT COUNT(*)::int as count FROM public.admin_users`);
+        dbHasAnyUsers = (countRes[0]?.count ?? 0) > 0;
+      }
+    } catch (err) {
+      console.error("DB admin auth check error:", err);
+    }
+
+    // 2. Safe bootstrap fallback: ONLY allowed if user is not in DB AND the DB has zero registered admin users
+    if (!isValid && !userFoundInDb && !dbHasAnyUsers) {
+      if (
+        envAdminEmail &&
+        envAdminPassword &&
+        requestedEmail === envAdminEmail &&
+        (await verifyPassword(password, envAdminPassword))
+      ) {
+        isValid = true;
+        userPayload = {
+          email: envAdminEmail,
+          name: DEFAULT_ADMIN.name,
+          role: DEFAULT_ADMIN.role,
+        };
       }
     }
 

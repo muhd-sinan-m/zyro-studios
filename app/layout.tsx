@@ -1,8 +1,30 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { Plus_Jakarta_Sans, Space_Grotesk, Syne } from "next/font/google";
 import "./globals.css";
 import PublicLayout from "@/components/navigation/PublicLayout";
 import { constructMetadata, getRootSchemaGraph, SITE_CONFIG } from "@/lib/seo";
+
+const fontBody = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700", "800"],
+});
+
+const fontMono = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
+const fontDisplay = Syne({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  weight: ["600", "700", "800"],
+});
 
 export const viewport: Viewport = {
   themeColor: "#030712",
@@ -22,7 +44,11 @@ export default function RootLayout({
   const rootSchema = getRootSchemaGraph();
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${fontBody.variable} ${fontMono.variable} ${fontDisplay.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script
           type="application/ld+json"

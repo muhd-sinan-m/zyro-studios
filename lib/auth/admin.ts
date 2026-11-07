@@ -4,12 +4,24 @@ import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
-const JWT_SECRET_STRING = process.env.ADMIN_JWT_SECRET || "";
-const JWT_SECRET = new TextEncoder().encode(JWT_SECRET_STRING);
+export function getJwtSecret(): Uint8Array {
+  const secret = process.env.ADMIN_JWT_SECRET;
+  if (!secret || secret.trim().length < 32) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "[SECURITY CRITICAL] ADMIN_JWT_SECRET environment variable is missing or less than 32 characters in production. Aborting authentication."
+      );
+    }
+    // Safe ephemeral fallback strictly for local development
+    return new TextEncoder().encode(
+      secret || "zyro_studios_development_jwt_secret_min_32_characters_long_key"
+    );
+  }
+  return new TextEncoder().encode(secret);
+}
 
 export const DEFAULT_ADMIN = {
-  email: process.env.ADMIN_EMAIL || "",
-  password: process.env.ADMIN_PASSWORD || "",
+  email: process.env.ADMIN_EMAIL || "admin@zyrostudios.com",
   name: "Zyro Lead Admin",
   role: "superadmin",
 };
@@ -24,11 +36,11 @@ export async function verifyPassword(password: string, hashOrPlain: string): Pro
   if (!password || !hashOrPlain) return false;
 
   // Check if hashOrPlain is a bcrypt hash
-  if (hashOrPlain.startsWith("$2a$") || hashOrPlain.startsWith("$2b$")) {
+  if (hashOrPlain.startsWith("$2a$") || hashOrPlain.startsWith("$2b$") || hashOrPlain.startsWith("$2y$")) {
     return await bcrypt.compare(password, hashOrPlain);
   }
 
-  // Fallback constant-time string comparison for env password
+  // Constant-time string comparison for plain string env fallback
   const a = Buffer.from(password);
   const b = Buffer.from(hashOrPlain);
   if (a.length !== b.length) return false;
@@ -36,21 +48,23 @@ export async function verifyPassword(password: string, hashOrPlain: string): Pro
 }
 
 export async function hashPassword(password: string): Promise<string> {
-  return await bcrypt.hash(password, 10);
+  return await bcrypt.hash(password, 12);
 }
 
 export async function createAdminToken(payload: AdminSession): Promise<string> {
+  const secret = getJwtSecret();
   return await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("30d")
-    .sign(JWT_SECRET);
+    .sign(secret);
 }
 
 export async function verifyAdminToken(token: string): Promise<AdminSession | null> {
   try {
+    const secret = getJwtSecret();
     // Cryptographically verify signature using HS256 HMAC-SHA256 strictly (prevents alg:none forgery)
-    const { payload } = await jwtVerify(token, JWT_SECRET, {
+    const { payload } = await jwtVerify(token, secret, {
       algorithms: ["HS256"],
     });
 
