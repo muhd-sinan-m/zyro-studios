@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { supabase } from "@/lib/supabase/client";
 import {
   Inbox,
   Search,
@@ -29,17 +30,32 @@ export default function AdminInquiriesPage() {
   const [selectedInquiry, setSelectedInquiry] = useState<any | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const lastEtag = useRef<string | null>(null);
 
   const fetchInquiries = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const res = await fetch("/api/inquiries");
+      const headers: Record<string, string> = {};
+      if (silent && lastEtag.current) {
+        headers["If-None-Match"] = lastEtag.current;
+      }
+
+      const res = await fetch("/api/inquiries", { headers });
+
+      // 304 Not Modified: cache hit, zero re-renders, zero database queries
+      if (res.status === 304) {
+        return;
+      }
+
       if (res.ok) {
+        const etag = res.headers.get("etag");
+        if (etag) lastEtag.current = etag;
+
         const data = await res.json();
         setInquiries(data.inquiries || []);
       }
     } catch (e) {
-      console.error(e);
+      console.error("Failed to fetch inquiries:", e);
     } finally {
       if (!silent) setLoading(false);
     }
@@ -47,11 +63,41 @@ export default function AdminInquiriesPage() {
 
   useEffect(() => {
     fetchInquiries();
-    // Auto-fetch new incoming inquiries live every 5 seconds
+
+    // Supabase Realtime WebSocket listener for immediate instant push without reload
+    let channel: any = null;
+    if (supabase) {
+      channel = supabase
+        .channel("inquiries-live-stream")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "inquiries" },
+          (payload: any) => {
+            if (payload.eventType === "INSERT" && payload.new) {
+              setInquiries((prev) => [payload.new, ...prev.filter((i) => i.id !== payload.new.id)]);
+            } else if (payload.eventType === "UPDATE" && payload.new) {
+              setInquiries((prev) =>
+                prev.map((i) => (i.id === payload.new.id ? { ...i, ...payload.new } : i))
+              );
+            } else if (payload.eventType === "DELETE" && payload.old) {
+              setInquiries((prev) => prev.filter((i) => i.id !== payload.old.id));
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    // Lightweight 304 ETag-aware auto-fetch every 5s (0 database queries if no new data)
     const interval = setInterval(() => {
       fetchInquiries(true);
     }, 5000);
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(interval);
+      if (channel && supabase) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {

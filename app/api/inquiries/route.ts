@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { verifyAdminRequest } from "@/lib/auth/admin";
+import { getCachedOrFetch, invalidateCache } from "@/lib/cache";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
@@ -49,6 +50,9 @@ export async function POST(req: NextRequest) {
       [projectType, timeline || "Flexible", name, email, phone, company || "", details]
     );
 
+    // Invalidate cache immediately so new inquiry appears live on admin dashboard without reload
+    invalidateCache(["inquiries:all", "admin:stats"]);
+
     return NextResponse.json({
       success: true,
       message: "Inquiry received successfully! Our team will contact you within 24 hours.",
@@ -69,11 +73,37 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const ifNoneMatch = req.headers.get("if-none-match");
+
   try {
-    const rows = await query(
-      `SELECT * FROM public.inquiries ORDER BY created_at DESC`
+    const result = await getCachedOrFetch(
+      "inquiries:all",
+      async () => {
+        return await query(`SELECT * FROM public.inquiries ORDER BY created_at DESC`);
+      },
+      { ttlMs: 15000, ifNoneMatch }
     );
-    return NextResponse.json({ inquiries: rows });
+
+    if (result.notModified) {
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+          ETag: result.etag,
+          "Cache-Control": "private, no-cache",
+        },
+      });
+    }
+
+    return NextResponse.json(
+      { inquiries: result.data },
+      {
+        headers: {
+          ETag: result.etag,
+          "Cache-Control": "private, no-cache",
+          "X-Cache": result.isCached ? "HIT" : "MISS",
+        },
+      }
+    );
   } catch (error: any) {
     console.error("Fetch inquiries error:", error);
     return NextResponse.json({ inquiries: [] });
@@ -108,6 +138,8 @@ export async function PATCH(req: NextRequest) {
     if (rows.length === 0) {
       return NextResponse.json({ error: "No matching inquiries found to update" }, { status: 404 });
     }
+
+    invalidateCache(["inquiries:all", "admin:stats"]);
 
     return NextResponse.json({
       success: true,
@@ -150,6 +182,8 @@ export async function DELETE(req: NextRequest) {
       `DELETE FROM public.inquiries WHERE id = ANY($1::uuid[]) RETURNING id`,
       [targetIds]
     );
+
+    invalidateCache(["inquiries:all", "admin:stats"]);
 
     return NextResponse.json({
       success: true,

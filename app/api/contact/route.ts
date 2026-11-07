@@ -63,6 +63,7 @@ export async function POST(req: Request) {
     // Secure database storage with parameterized query; never log raw PII to server stdout
     try {
       const { query } = await import("@/lib/db");
+      const { invalidateCache } = await import("@/lib/cache");
       await query(
         `
         INSERT INTO public.inquiries (project_type, timeline, name, email, phone, company, details, status)
@@ -78,6 +79,8 @@ export async function POST(req: Request) {
           data.description + (data.budget ? ` [Budget: ${data.budget}]` : ""),
         ]
       );
+      // Invalidate cache immediately so new inquiry appears live on admin dashboard without reload
+      invalidateCache(["inquiries:all", "admin:stats"]);
     } catch (dbErr) {
       // In case database connection is unreachable, log masked error without exposing user PII
       console.error("Inquiry database insert error:", (dbErr as Error).message);

@@ -2,45 +2,74 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { verifyAdminRequest } from "@/lib/auth/admin";
 import { deleteProjectAsset } from "@/lib/storage/s3";
+import { getCachedOrFetch, invalidateCache } from "@/lib/cache";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const includeAll = searchParams.get("all") === "true";
+  const ifNoneMatch = req.headers.get("if-none-match");
 
-  let dbProjects: any[] = [];
+  const cacheKey = includeAll ? "projects:all" : "projects:public";
+
   try {
-    const sql = includeAll
-      ? `SELECT * FROM public.projects ORDER BY created_at ASC, id ASC`
-      : `SELECT * FROM public.projects WHERE status != 'archived' AND status != 'hidden' AND is_hidden = false ORDER BY created_at ASC, id ASC`;
-    dbProjects = await query(sql);
+    const result = await getCachedOrFetch(
+      cacheKey,
+      async () => {
+        const sql = includeAll
+          ? `SELECT * FROM public.projects ORDER BY created_at ASC, id ASC`
+          : `SELECT * FROM public.projects WHERE status != 'archived' AND status != 'hidden' AND is_hidden = false ORDER BY created_at ASC, id ASC`;
+        const dbProjects = await query(sql);
+
+        // Transform db format to Project schema
+        return dbProjects.map((p) => ({
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          category: p.category,
+          shortDescription: p.short_description,
+          fullDescription: p.full_description || p.short_description,
+          features: Array.isArray(p.features) ? p.features : [],
+          thumbnail: p.thumbnail_url || (Array.isArray(p.screenshots) && p.screenshots[0]) || "",
+          modalImage: p.modal_image_url || p.thumbnail_url || (Array.isArray(p.screenshots) && p.screenshots[1]) || "",
+          screenshots: Array.isArray(p.screenshots) ? p.screenshots : [],
+          liveUrl: p.live_url || "",
+          year: p.year || 2026,
+          featured: Boolean(p.featured),
+          isHidden: Boolean(p.is_hidden),
+          status: p.status || "live",
+          problemStatement: p.problem_statement || "",
+          solution: p.solution || "",
+          client: p.client || "",
+          createdAt: p.created_at,
+        }));
+      },
+      { ttlMs: 60000, ifNoneMatch }
+    );
+
+    if (result.notModified) {
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+          ETag: result.etag,
+          "Cache-Control": "public, max-age=60, stale-while-revalidate=300",
+        },
+      });
+    }
+
+    return NextResponse.json(
+      { projects: result.data },
+      {
+        headers: {
+          ETag: result.etag,
+          "Cache-Control": "public, max-age=60, stale-while-revalidate=300",
+          "X-Cache": result.isCached ? "HIT" : "MISS",
+        },
+      }
+    );
   } catch (err) {
-    console.error("Error fetching projects from DB:", err);
+    console.error("Error fetching projects:", err);
+    return NextResponse.json({ projects: [] }, { status: 500 });
   }
-
-  // Transform db format to Project schema (without results and technologies)
-  const formattedDbProjects = dbProjects.map((p) => ({
-    id: p.id,
-    title: p.title,
-    slug: p.slug,
-    category: p.category,
-    shortDescription: p.short_description,
-    fullDescription: p.full_description || p.short_description,
-    features: Array.isArray(p.features) ? p.features : [],
-    thumbnail: p.thumbnail_url || (Array.isArray(p.screenshots) && p.screenshots[0]) || "",
-    modalImage: p.modal_image_url || p.thumbnail_url || (Array.isArray(p.screenshots) && p.screenshots[1]) || "",
-    screenshots: Array.isArray(p.screenshots) ? p.screenshots : [],
-    liveUrl: p.live_url || "",
-    year: p.year || 2026,
-    featured: Boolean(p.featured),
-    isHidden: Boolean(p.is_hidden),
-    status: p.status || "live",
-    problemStatement: p.problem_statement || "",
-    solution: p.solution || "",
-    client: p.client || "",
-    createdAt: p.created_at,
-  }));
-
-  return NextResponse.json({ projects: formattedDbProjects });
 }
 
 export async function POST(req: NextRequest) {
@@ -115,6 +144,9 @@ export async function POST(req: NextRequest) {
         client || null,
       ]
     );
+
+    // Invalidate cache immediately so new project is visible live without reload
+    invalidateCache(["projects:public", "projects:all", "admin:stats"]);
 
     return NextResponse.json({ success: true, project: rows[0] });
   } catch (error: any) {
@@ -210,6 +242,9 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
+    // Invalidate cache immediately so new project is visible live without reload
+    invalidateCache(["projects:public", "projects:all", "admin:stats"]);
+
     return NextResponse.json({ success: true, project: rows[0] });
   } catch (error: any) {
     console.error("Project update error:", error);
@@ -266,6 +301,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
+    invalidateCache(["projects:public", "projects:all", "admin:stats"]);
+
     return NextResponse.json({
       success: true,
       message: `Project ${rows[0].is_hidden ? "hidden" : "visible"} successfully`,
@@ -303,6 +340,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     await query(`DELETE FROM public.projects WHERE id::text = $1 OR slug = $1`, [id]);
+    invalidateCache(["projects:public", "projects:all", "admin:stats"]);
     return NextResponse.json({ success: true, message: "Project deleted successfully" });
   } catch (error: any) {
     return NextResponse.json(

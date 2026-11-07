@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase/client";
 import {
   Inbox,
   FolderGit2,
@@ -28,26 +29,42 @@ export default function AdminDashboardPage() {
   const [recentInquiries, setRecentInquiries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const lastStatsEtag = useRef<string | null>(null);
+  const lastInquiriesEtag = useRef<string | null>(null);
 
   const fetchData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
+      const statsHeaders: Record<string, string> = {};
+      const inqHeaders: Record<string, string> = {};
+
+      if (silent && lastStatsEtag.current) {
+        statsHeaders["If-None-Match"] = lastStatsEtag.current;
+      }
+      if (silent && lastInquiriesEtag.current) {
+        inqHeaders["If-None-Match"] = lastInquiriesEtag.current;
+      }
+
       const [resStats, resInq] = await Promise.all([
-        fetch("/api/admin/stats"),
-        fetch("/api/inquiries"),
+        fetch("/api/admin/stats", { headers: statsHeaders }),
+        fetch("/api/inquiries", { headers: inqHeaders }),
       ]);
 
-      if (resStats.ok) {
+      if (resStats.status === 200) {
+        const etag = resStats.headers.get("etag");
+        if (etag) lastStatsEtag.current = etag;
         const statsData = await resStats.json();
         setStats(statsData.stats || statsData);
       }
 
-      if (resInq.ok) {
+      if (resInq.status === 200) {
+        const etag = resInq.headers.get("etag");
+        if (etag) lastInquiriesEtag.current = etag;
         const inqData = await resInq.json();
         setRecentInquiries(inqData.inquiries || []);
       }
     } catch (e) {
-      console.error(e);
+      console.error("Dashboard fetch error:", e);
     } finally {
       if (!silent) setLoading(false);
     }
@@ -55,11 +72,50 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     fetchData();
-    // Auto-refresh new inquiries & stats live every 5 seconds without UI flickering
+
+    // Supabase Realtime WebSocket listener for immediate instant push without reload
+    let channel: any = null;
+    if (supabase) {
+      channel = supabase
+        .channel("admin-dashboard-stream")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "inquiries" },
+          (payload: any) => {
+            if (payload.eventType === "INSERT" && payload.new) {
+              setRecentInquiries((prev) => [payload.new, ...prev.filter((i) => i.id !== payload.new.id)]);
+              setStats((prev: any) => ({
+                ...prev,
+                totalInquiries: (prev.totalInquiries || 0) + 1,
+                unreadInquiries: (prev.unreadInquiries || 0) + 1,
+              }));
+            } else if (payload.eventType === "UPDATE" && payload.new) {
+              setRecentInquiries((prev) =>
+                prev.map((i) => (i.id === payload.new.id ? { ...i, ...payload.new } : i))
+              );
+            } else if (payload.eventType === "DELETE" && payload.old) {
+              setRecentInquiries((prev) => prev.filter((i) => i.id !== payload.old.id));
+              setStats((prev: any) => ({
+                ...prev,
+                totalInquiries: Math.max(0, (prev.totalInquiries || 1) - 1),
+              }));
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    // Auto-refresh with 304 ETag check every 5s (0 database queries if unchanged)
     const interval = setInterval(() => {
       fetchData(true);
     }, 5000);
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(interval);
+      if (channel && supabase) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const handleDeleteInquiry = async (id: string, name: string) => {

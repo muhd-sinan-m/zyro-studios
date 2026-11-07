@@ -6,8 +6,8 @@ import Link from "next/link";
 import { ArrowRight, ExternalLink, Sparkles } from "lucide-react";
 import { getFeaturedProjects } from "@/data/projects";
 import { Project } from "@/types";
-
 import { ProjectModal } from "@/components/projects/ProjectModal";
+import { supabase } from "@/lib/supabase/client";
 
 export function FeaturedWork() {
   const ref = useRef<HTMLDivElement>(null);
@@ -15,20 +15,54 @@ export function FeaturedWork() {
 
   const [projectList, setProjectList] = useState<Project[]>(getFeaturedProjects());
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const lastEtag = useRef<string | null>(null);
 
-  useEffect(() => {
-    fetch("/api/projects")
-      .then((res) => res.json())
-      .then((data) => {
+  const loadProjects = async (silent = false) => {
+    try {
+      const headers: Record<string, string> = {};
+      if (silent && lastEtag.current) {
+        headers["If-None-Match"] = lastEtag.current;
+      }
+      const res = await fetch("/api/projects", { headers });
+      if (res.status === 304) return;
+      if (res.ok) {
+        const etag = res.headers.get("etag");
+        if (etag) lastEtag.current = etag;
+        const data = await res.json();
         if (data.projects && Array.isArray(data.projects) && data.projects.length > 0) {
           const visible = data.projects.filter((p: Project) => !p.isHidden);
           const featuredOnly = visible.filter((p: Project) => p.featured);
           setProjectList(featuredOnly.length > 0 ? featuredOnly : visible);
         }
-      })
-      .catch((err) => {
-        console.error("Failed to load projects from DB:", err);
-      });
+      }
+    } catch (err) {
+      console.error("Failed to load projects:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadProjects();
+
+    // Supabase Realtime WebSocket listener: auto-update projects without reload
+    let channel: any = null;
+    if (supabase) {
+      channel = supabase
+        .channel("public-featured-projects")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "projects" },
+          () => {
+            loadProjects(true);
+          }
+        )
+        .subscribe();
+    }
+
+    return () => {
+      if (channel && supabase) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   // Sync modal state with URL hash (#project-slug) for browser back button support
