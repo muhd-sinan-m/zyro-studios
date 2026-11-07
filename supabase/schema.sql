@@ -55,13 +55,21 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
   role TEXT NOT NULL DEFAULT 'superadmin' CHECK (role IN ('superadmin', 'admin', 'viewer'))
 );
 
--- 5. Indexes for High-Performance Queries
+-- 5. Indexes for High-Performance Queries & N+1 Prevention
 CREATE INDEX IF NOT EXISTS idx_projects_featured ON public.projects(featured);
 CREATE INDEX IF NOT EXISTS idx_projects_is_hidden ON public.projects(is_hidden);
 CREATE INDEX IF NOT EXISTS idx_projects_status ON public.projects(status);
 CREATE INDEX IF NOT EXISTS idx_projects_slug ON public.projects(slug);
+-- High-performance composite index for public project feed
+CREATE INDEX IF NOT EXISTS idx_projects_public_listing ON public.projects(is_hidden, status, created_at ASC, id ASC);
+-- Partial index for active project case-study seeks by slug
+CREATE INDEX IF NOT EXISTS idx_projects_slug_active ON public.projects(slug) WHERE is_hidden = false AND status != 'archived';
+
+-- Inquiries indexes for rapid status filtering and timeline sorting
 CREATE INDEX IF NOT EXISTS idx_inquiries_status ON public.inquiries(status);
 CREATE INDEX IF NOT EXISTS idx_inquiries_created_at ON public.inquiries(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_inquiries_status_created ON public.inquiries(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_inquiries_email ON public.inquiries(email);
 
 -- 6. Updated At Trigger Function
 CREATE OR REPLACE FUNCTION public.handle_updated_at()

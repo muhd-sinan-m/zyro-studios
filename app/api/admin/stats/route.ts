@@ -14,20 +14,17 @@ export async function GET(req: NextRequest) {
   let isDbConnected = true;
 
   try {
-    const inqRows = await query(`
+    // Single batched query for all statistics in 1 database roundtrip
+    const rows = await query(`
       SELECT 
-        COUNT(*) as total,
-        COUNT(CASE WHEN status = 'unread' THEN 1 END) as unread
-      FROM public.inquiries
-    `);
-    
-    const projRows = await query(`
-      SELECT COUNT(*) as total FROM public.projects
+        (SELECT COUNT(*) FROM public.inquiries) as total_inquiries,
+        (SELECT COUNT(*) FROM public.inquiries WHERE status = 'unread') as unread_inquiries,
+        (SELECT COUNT(*) FROM public.projects) as total_projects
     `);
 
-    totalInquiries = parseInt(inqRows[0]?.total || "0", 10);
-    unreadInquiries = parseInt(inqRows[0]?.unread || "0", 10);
-    totalProjects += parseInt(projRows[0]?.total || "0", 10);
+    totalInquiries = parseInt(rows[0]?.total_inquiries || "0", 10);
+    unreadInquiries = parseInt(rows[0]?.unread_inquiries || "0", 10);
+    totalProjects += parseInt(rows[0]?.total_projects || "0", 10);
   } catch (e) {
     console.error("Stats query error:", e);
     isDbConnected = false;

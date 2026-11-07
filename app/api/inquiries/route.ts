@@ -87,27 +87,36 @@ export async function PATCH(req: NextRequest) {
   }
 
   try {
-    const { id, status, notes } = await req.json();
-    if (!id) {
-      return NextResponse.json({ error: "Inquiry ID is required" }, { status: 400 });
+    const { id, ids: rawIds, status, notes } = await req.json();
+    const targetIds = Array.isArray(rawIds) ? rawIds : (id ? [id] : []);
+
+    if (targetIds.length === 0) {
+      return NextResponse.json({ error: "Inquiry ID or IDs array is required" }, { status: 400 });
     }
 
+    // Batch update using ANY($3::uuid[]) to eliminate N+1 queries
     const rows = await query(
       `
       UPDATE public.inquiries 
       SET status = COALESCE($1, status), notes = COALESCE($2, notes)
-      WHERE id = $3
+      WHERE id = ANY($3::uuid[])
       RETURNING *
       `,
-      [status || null, notes !== undefined ? notes : null, id]
+      [status || null, notes !== undefined ? notes : null, targetIds]
     );
 
     if (rows.length === 0) {
-      return NextResponse.json({ error: "Inquiry not found" }, { status: 404 });
+      return NextResponse.json({ error: "No matching inquiries found to update" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, inquiry: rows[0] });
+    return NextResponse.json({
+      success: true,
+      updatedCount: rows.length,
+      inquiries: rows,
+      inquiry: rows[0],
+    });
   } catch (error: any) {
+    console.error("Update inquiry error:", error);
     return NextResponse.json(
       { error: "Unable to update inquiry. Please try again." },
       { status: 500 }
@@ -124,29 +133,29 @@ export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const idParam = searchParams.get("id");
+    const body = await req.json().catch(() => ({}));
+    const targetIds = Array.isArray(body.ids)
+      ? body.ids
+      : (body.id ? [body.id] : (idParam ? [idParam] : []));
 
-    let idToDelete = idParam;
-    if (!idToDelete) {
-      const body = await req.json().catch(() => ({}));
-      idToDelete = body.id;
-    }
-
-    if (!idToDelete) {
+    if (targetIds.length === 0) {
       return NextResponse.json(
-        { error: "Inquiry ID is required for deletion." },
+        { error: "Inquiry ID or IDs array is required for deletion." },
         { status: 400 }
       );
     }
 
+    // Batch delete using ANY($1::uuid[]) to eliminate N+1 queries
     const rows = await query(
-      `DELETE FROM public.inquiries WHERE id = $1 RETURNING id`,
-      [idToDelete]
+      `DELETE FROM public.inquiries WHERE id = ANY($1::uuid[]) RETURNING id`,
+      [targetIds]
     );
 
     return NextResponse.json({
       success: true,
-      message: "Inquiry deleted successfully.",
-      deletedId: idToDelete,
+      message: `Successfully deleted ${rows.length} inquiry(s).`,
+      deletedCount: rows.length,
+      deletedIds: rows.map((r: any) => r.id),
     });
   } catch (error: any) {
     console.error("Delete inquiry error:", error);
